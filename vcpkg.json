@@ -1,0 +1,20 @@
+{
+  "$schema": "https://raw.githubusercontent.com/microsoft/vcpkg/master/scripts/vcpkg.schema.json",
+  "name": "eennggiinnee",
+  "version": "0.0.0",
+  "dependencies": [
+    "sdl2",
+    "libpng",
+    "zlib",
+    {
+      "name": "sdl2-image",
+      "features": [ "libjpeg-turbo" ]
+    },
+    {
+      "name": "imgui",
+      "features": [ "sdl2-renderer-binding", "sdl2-binding" ]
+    },
+    "sdl2-ttf",
+    "gtest"
+  ]
+}
