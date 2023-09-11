@@ -4,6 +4,7 @@
 #include <vector>
 #include <gtest/gtest.h>
 
+// TODO: Unit test for when Z order in non-zero.
 namespace Engine
 {
 	//          0         1         2         3         4

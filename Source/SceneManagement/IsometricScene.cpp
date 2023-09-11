@@ -76,7 +76,6 @@ namespace Engine
 
 		renderer.RenderSprite(texture, sourceRectangle, renderRectangle);
 		
-		// TODO: ?Could create a texture of grid, moving it back and forth to create the illusion of movement, and recreate on scale.
 		RenderGrid(renderer);
 		RenderScene(renderer);
 	}
@@ -109,6 +108,7 @@ namespace Engine
 
 	void IsometricScene::RenderGrid(Renderer& renderer)
 	{
+		// TODO: Optimise. What might be better is to render once to a surface that's retained between loops and is moved according to the camera.
 		renderer.SetRenderColour(255, 0, 0, 255);
 		float zoom = MainCamera.GetComponent<Zoom>().Value;
 		const Vector2<float> screenSize = (Vector2<float>)Events::Instance().GetWindowSize();
@@ -145,7 +145,7 @@ namespace Engine
 			world = GridToWorldSpace({ topLeftCorner.X + j + gridCount + 1, topLeftCorner.Y + j - gridCount + 1 });
 			Vector2<float> rightEdge = WorldSpaceToRenderSpace(world);
 
-			// SDL may end up using a considerable amount of memory and cause major performance hits depending on the size of the grid. TODO: Optimise.
+			// SDL may end up using a considerable amount of memory and cause major performance hits depending on the size of the grid.
 			renderer.RenderLine(topEdge, leftEdge);
 			renderer.RenderLine(topEdge, rightEdge);
 			if (i > 0) // Stop overlap in middle. Might not matter much if same colour, but just in case there's minor floating point errors.
@@ -157,34 +157,31 @@ namespace Engine
 
 	void IsometricScene::SortEntities(std::vector<Entity>& entities)
 	{
-		// Crappy depth buffer.
+		// Basic isometric depth buffer that relies on all sprites being only a tile in size.
 		// Because there's overlap in isometric scenes, one way to determine render order is by sorting by Y 
-		// position so that entities closer to the top of the screen are rendered first.
-		// Then because some entities need to overlap they have a ZOrder.
+		// position so that entities closer to the top of the screen are rendered first. But because some
+		// entities need to overlap they have a Z order requiring the entities to be sorted by Y position conditionally.
 
-
-		// Sort by Z to get the vector into sections.
+		// Sort by Z to get the vector into sections so that they correctly overlap one another.
 		std::sort(entities.begin(), entities.end(),
 			[](Entity a, Entity b) { return a.GetComponent<Position>().Z < b.GetComponent<Position>().Z; });
 
-		// Get where there's a transition in the sections.
-		int previousZ = 0;
-		for (size_t i = 1; i < entities.size(); i++)
+		// Sort each previous section as the transitions between Z layers are discovered.
+		int lastZOrderChange = 0;
+		for (size_t i = 1; i < entities.size(); ++i)
 		{
-			if (entities[i].GetComponent<Position>().Z != entities[i - 1].GetComponent<Position>().Z)
+			// This won't trigger for the final section.
+			if (entities[i-1].GetComponent<Position>().Z != entities[i].GetComponent<Position>().Z)
 			{
-				std::sort(entities.begin() + previousZ, entities.begin() + i,
+				std::sort(entities.begin() + lastZOrderChange, entities.begin() + i,
 					[](Entity a, Entity b) { return a.GetComponent<Position>().Y < b.GetComponent<Position>().Y; });
-				previousZ = i;
-
+				lastZOrderChange = i;
 			}
 		}
 
-		if (previousZ == 0)
-		{
-			std::sort(entities.begin(), entities.end(), 
-				[](Entity a, Entity b) { return a.GetComponent<Position>().Y < b.GetComponent<Position>().Y; });
-		}
+		// Sort the final section.
+		std::sort(entities.begin() + lastZOrderChange, entities.end(),
+			[](Entity a, Entity b) { return a.GetComponent<Position>().Y < b.GetComponent<Position>().Y; });
 	}
 
 	std::vector<Entity> IsometricScene::GetRenderableEntities()
