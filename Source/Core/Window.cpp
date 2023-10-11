@@ -20,7 +20,7 @@ namespace Engine
 			exit(-1);
 		}
 
-		ManagedIcon = IMG_Load("Data/icon.png"); // TODO: Fetch from better location, probably manage its memory there too.
+		ManagedIcon = IMG_Load("Data/Icon.png"); // TODO: Fetch from better location, probably manage its memory there too.
 		if (!ManagedIcon)
 		{
 			SDL_Log("Error: %s\n", SDL_GetError());
