@@ -58,4 +58,5 @@ namespace Engine
 	using Components = TypeList<Position, Velocity, Zoom, Sprite, Collider>;
 	using ComponentPool = ComponentHelper<Components>::Pool;
 	using ComponentSlice = ComponentHelper<Components>::Slice;
+	using ComponentReferenceSlice = ComponentHelper<Components>::ReferenceSlice;
 }

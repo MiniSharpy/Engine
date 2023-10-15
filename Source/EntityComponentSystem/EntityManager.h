@@ -68,24 +68,34 @@ namespace Engine
 			EntityMemoryPool::Instance().Destroy(entity.ID);
 		}
 
-		size_t GetEnabledComponents(size_t id)
+		std::bitset<MAX_COMPONENTS> GetEnabledComponents(size_t id) const
 		{
 			return EntityMemoryPool::Instance().GetEnabledComponents(id);
 		}
 
-		void SetEnabledComponents(size_t id, size_t enabledComponents)
+		std::bitset<MAX_COMPONENTS>& GetEnabledComponents(size_t id)
+		{
+			return EntityMemoryPool::Instance().GetEnabledComponents(id);
+		}
+
+		void SetEnabledComponents(size_t id, std::bitset<MAX_COMPONENTS> enabledComponents)
 		{
 			EntityMemoryPool::Instance().SetEnabledComponents(id, enabledComponents);
 		}
 
 		ComponentSlice GetPoolSlice(size_t id)
 		{
-			return EntityMemoryPool::Instance().GetPoolSlice(id);
+			return EntityMemoryPool::Instance().CreateSlice(id);
 		}
 
 		void SetPoolSlice(size_t id, ComponentSlice& componentSlice)
 		{
-			EntityMemoryPool::Instance().SetPoolSlice(id, componentSlice);
+			EntityMemoryPool::Instance().UpdatePoolWithSlice(id, componentSlice);
+		}
+
+		ComponentReferenceSlice GetReferenceSlice(size_t id)
+		{
+			return EntityMemoryPool::Instance().GetReferenceSlice(id);
 		}
 	};
 }

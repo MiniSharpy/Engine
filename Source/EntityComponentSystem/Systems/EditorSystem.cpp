@@ -8,11 +8,13 @@
 #include "../../Pathfinding/NavigationGraph.h"
 #include "../../Maths/Vector2.h"
 #include "../../Collision/Intersections.h"
+#include "../../Editor/ComponentEditor.h"
 #include <imgui.h>
 #include <filesystem>
 #include <string>
 #include <optional>
 #include <limits>
+#include <format>
 
 namespace Engine
 {
@@ -69,18 +71,19 @@ namespace Engine
 		if (ImGui::Button("Apply"))
 		{
 			OwningScene.SetTileSize(SelectedMapTileSize.X, SelectedMapTileSize.Y);
-			CurrentTileAtlas = { SelectedFileName, SelectedMapTileSize };
+			CurrentTileAtlas = {};
+			SelectedTile = {};
 		}
 		ImGui::End();
 	}
 
-	void EditorSystem::FileSelection()
+	std::optional<std::pair<ComponentReferenceSlice, std::bitset<MAX_COMPONENTS>&>> EditorSystem::TileEditor()
 	{
-		// Stop out of index errors if there are no files.
-		if (AvailableTextureNames.size() == 0) { return; }
+		// Stop out of index errors if there are no tile atlases.
+		if (AvailableTextureNames.size() == 0) { return {}; }
 
-		ImGui::Begin("Atlas Editor", 0, ImGuiWindowFlags_AlwaysAutoResize);
-		if (ImGui::BeginCombo("Image", SelectedFileName.c_str())) // Second shows
+		// File Selection
+		if (ImGui::BeginCombo("Image", SelectedFileName.c_str()))
 		{
 			for (int currentEntry = 0; currentEntry < AvailableTextureNames.size(); currentEntry++)
 			{
@@ -91,12 +94,31 @@ namespace Engine
 					{
 						SelectedFileName = AvailableTextureNames[currentEntry];
 						CurrentTileAtlas = { SelectedFileName, SelectedMapTileSize };
+						SelectedTile = {};
 					}
 				}
 			}
 			ImGui::EndCombo();
 		}
-		ImGui::End();
+
+		// Display editor and handle input into the scene.
+		if (CurrentTileAtlas)
+		{
+			TileActions();
+
+			std::optional<Vector2<int>> clickedTile = CurrentTileAtlas->AtlasEditor(SelectedTile);
+
+			if (clickedTile == SelectedTile) { SelectedTile = {}; } // Toggle selection.
+			else if (clickedTile) { SelectedTile = clickedTile; } // Set to selection
+
+			if (SelectedTile)
+			{
+				Tile& selectedTile = (*CurrentTileAtlas)(SelectedTile->X, SelectedTile->Y);
+				return { {selectedTile.GetReferenceSlice(), selectedTile.GetEnabledComponents()} };
+			}
+		}
+
+		return {};
 	}
 
 	void EditorSystem::TileActions()
@@ -113,25 +135,31 @@ namespace Engine
 		// Place Tile
 		if (ImGui::IsMouseClicked(ImGuiMouseButton_Left)) // TODO: Switch to is mouse down once there's a more clever overlap prevention.
 		{
+			if (!SelectedTile) { return; }
 
 			// If there's no entity found at the position then create one.
 			// TODO: Divide by 4 as iso tiles assume overlap. It may not always be by 4, convert to variable.
 			std::optional<Entity> collision = GetCollidingEntity(mouseGridPosition, { (float)tileSize.X, tileSize.Y / 4.0f });
-			Tile& tile = (*CurrentTileAtlas)(SelectedTile.X, SelectedTile.Y);
+
+			Tile& tile = (*CurrentTileAtlas)(SelectedTile->X, SelectedTile->Y);
+
+			if (!tile.HasComponent<Position>()) { return; } // Can't exactly place something in a space if doesn't have a position.
+
 
 			if (!collision || tile.GetComponent<Position>().Z > 0)
 			{
 				// Intentional copies for adding to command.
 				// TODO: Wrap ComponentSlice and bitset in an object to make getters and setters nicer.
 				ComponentSlice components = tile.GetComponents();
-				std::bitset<64> bitset = tile.GetEnabledComponents();
+				std::bitset<64> enabledComponents = tile.GetEnabledComponents();
 
 				Position& position = std::get<Position>(components);
 				position.X = mouseGridPosition.X; position.Y = mouseGridPosition.Y;
 
-				OwnedUndoManager.AddCommandAndExecute<CreateEntityCommand>(components, bitset, OwningScene.GetEntityManager()); // TODO: Use std::move instead of relying on compiler?
+				OwnedUndoManager.AddCommandAndExecute<CreateEntityCommand>(components, enabledComponents, OwningScene.GetEntityManager()); // TODO: Use std::move instead of relying on compiler?
 			}
 		}
+
 		// Erase Tile
 		if (ImGui::IsMouseDown(ImGuiMouseButton_Right))
 		{
@@ -182,7 +210,7 @@ namespace Engine
 
 			Collider& collider = entity.GetComponent<Collider>();
 
-			if (collider.Points.empty()) { break; }
+			if (collider.Points.empty()) { continue; }
 
 			Position& position = entity.GetComponent<Position>();
 			Sprite& sprite = entity.GetComponent<Sprite>();
@@ -206,19 +234,75 @@ namespace Engine
 		ImGui::End();
 	}
 
+	std::optional<std::pair<ComponentReferenceSlice, std::bitset<MAX_COMPONENTS>&>> EditorSystem::EntityOutliner()
+	{
+		// TODO: Take to entity on double click, some sort of highlight?
+		EntityManager& entityManager = OwningScene.GetEntityManager();
+		if (ImGui::BeginTable("EntityTable", 2, ImGuiTableFlags_NoSavedSettings | ImGuiTableFlags_Borders))
+		{
+			for (auto entity : entityManager.GetEntities())
+			{
+				const bool isSelected = (SelectedEntityID == entity.GetID());
+				std::string label = std::format("Entity {}", entity.GetID());
+				ImGui::TableNextRow();
+				ImGui::TableNextColumn();
+				if (ImGui::Selectable(label.c_str(), isSelected, ImGuiSelectableFlags_SpanAllColumns))
+				{
+					if (SelectedEntityID != entity.GetID())
+					{
+						SelectedEntityID = entity.GetID();
+					}
+					else
+					{
+						SelectedEntityID = {};
+					}
+				}
+				ImGui::TableNextColumn();
+				ImGui::Text("%s", entity.GetTag().c_str());
+			}
+
+			ImGui::EndTable();
+		}
+
+		if (SelectedEntityID)
+		{
+			return { { entityManager.GetReferenceSlice(*SelectedEntityID), entityManager.GetEnabledComponents(*SelectedEntityID) } };
+		}
+
+		return {};
+	}
+
 	void EditorSystem::Update(float deltaTime)
 	{
 		// TODO: Hotkey to enable debug. Perhaps tilde?
 		MapSettings();
-		FileSelection();
+		MapDebug();
 
-		if (CurrentTileAtlas)
+		std::optional<std::pair <ComponentReferenceSlice, std::bitset<MAX_COMPONENTS>&>> selectedEntity;
+
+		ImGui::Begin("MainEditor", nullptr, ImGuiWindowFlags_None);
+		if (ImGui::BeginTabBar("EntityEditing", ImGuiTabBarFlags_None))
 		{
-			CurrentTileAtlas->AtlasEditor(SelectedTile);
-			CurrentTileAtlas->operator()(SelectedTile.X, SelectedTile.Y).TileEditor();
-			TileActions();
+			if (ImGui::BeginTabItem("Entity Outliner"))
+			{
+				selectedEntity = EntityOutliner();
+				SelectedTile = {};
+				ImGui::EndTabItem();
+			}
+			if (ImGui::BeginTabItem("Tile Atlas Editor"))
+			{
+				selectedEntity = TileEditor();
+				SelectedEntityID = {};
+				ImGui::EndTabItem();
+			}
+			ImGui::EndTabBar();
+		}
+		ImGui::End();
+
+		if (selectedEntity)
+		{
+			ComponentsEditor(selectedEntity->first, selectedEntity->second);
 		}
 
-		MapDebug();
 	}
 }

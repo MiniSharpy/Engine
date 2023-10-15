@@ -12,6 +12,7 @@ namespace Engine
 {
 	// TODO: Using setter for altering scene.
 	// TODO: Make agnostic to isometric scenes.
+	// It is assumed that only one EditorSystem is in use at a time.
 	class EditorSystem : public BaseSystem
 	{
 	public:
@@ -23,9 +24,13 @@ namespace Engine
 		// ImGui variables
 		std::vector<std::string> AvailableTextureNames;
 		std::string SelectedFileName;
-		Vector2<int> SelectedTile;
 		Vector2<int> SelectedMapTileSize = { 128, 128 };
 		std::optional<TileAtlas> CurrentTileAtlas;
+
+		// These are mainly stored in the class rather than as statics in the
+		// functions so that they can be reset when switching between tabs.
+		std::optional<Vector2<int>> SelectedTile;
+		std::optional<size_t> SelectedEntityID;
 
 		// Useful helper methods
 		// TODO: Get by ZOrder, or get multiple overlapping?
@@ -33,9 +38,10 @@ namespace Engine
 
 		// Core logic
 		void MapSettings();
-		void FileSelection();
+		std::optional<std::pair<ComponentReferenceSlice, std::bitset<MAX_COMPONENTS>&>> TileEditor();
 		void TileActions();
 		void MapDebug();
+		std::optional<std::pair<ComponentReferenceSlice, std::bitset<MAX_COMPONENTS>&>> EntityOutliner();
 
 		// Tile Actions
 		UndoManager OwnedUndoManager;

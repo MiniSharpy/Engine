@@ -1,4 +1,6 @@
 #pragma once
+#include <optional>
+
 #include "../Maths/Vector2.h"
 #include "Tile.h"
 #include <vector>
@@ -23,7 +25,7 @@ namespace Engine
 		Tile& operator() (size_t x, size_t y);
 		Tile operator() (size_t x, size_t y) const;
 
-		void AtlasEditor(Vector2<int>& selectedTile);
+		std::optional<Vector2<int>> AtlasEditor(const std::optional<Vector2<int>>& previouslySelectedTile);
 
 	private:
 		std::string Name;

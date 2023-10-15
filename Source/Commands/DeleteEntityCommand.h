@@ -23,6 +23,6 @@ namespace Engine
 		std::optional<Entity> CreatedEntity;
 		EntityManager& OwningEntityManger;
 		ComponentSlice ComponentData;
-		size_t EnabledComponents;
+		std::bitset<MAX_COMPONENTS> EnabledComponents;
 	};
 }

@@ -15,6 +15,8 @@ namespace Engine
 	public:
 		size_t GetID() { return ID; }
 
+		std::string GetTag() { return EntityMemoryPool::Instance().GetTag(ID); }
+
 		template<typename T>
 		T& AddComponent()
 		{

@@ -92,11 +92,11 @@ namespace Engine
 				// This shouldn't happen unless the sprite component is incorrectly initialised/altered.
 				// It needs the texture to be a pointer so that there's a default value for when the components 
 				// are re-initialised.
-				SDL_Log("Entity %lld has no texture in its sprite component!", entity.GetID());
+				SDL_Log("Entity %lld has no texture in its sprite component!", entity.GetID()); // TODO: This is tremendously annoying, use an error texture.
 				continue;
 			}
 
-			Texture& texture = *sprite.SourceTexture; // If an object is incorrectly initialised, this could be a nullptr.
+			Texture& texture = *sprite.SourceTexture;
 			Vector2<float> renderPosition = WorldSpaceToRenderSpace(position - sprite.PivotOffset);
 			Vector2<float> renderSize = (Vector2<float>)sprite.SourceRectangle.Size * zoom;
 

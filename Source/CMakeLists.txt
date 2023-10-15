@@ -62,6 +62,8 @@ set(ALL_FILES
     "Editor/TileAtlas.cpp" 
     "Editor/Tile.h"
     "Editor/Tile.cpp"
+    "Editor/ComponentEditor.h"
+    "Editor/ComponentEditor.h" 
 )
 
 # Copy data folder to build directory. Hard links might be better, then there's less duplicate data. CMAKE_CURRENT_SOURCE_DIR might be better instead of LIST.

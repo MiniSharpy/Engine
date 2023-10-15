@@ -5,7 +5,7 @@
 #include <string>
 #include <tuple>
 #include <stack>
-#include <queue>
+#include <bitset>
 
 namespace Engine
 {
@@ -15,10 +15,11 @@ namespace Engine
 	class EntityMemoryPool
 	{
 		#define MAX_ENTITIES 16384
+		#define MAX_COMPONENTS 64
 
 		size_t AliveCount = 0;
 		ComponentPool Pool; // Includes entity ID, and all its components.
-		std::vector<size_t> EnabledComponents;
+		std::vector<std::bitset<MAX_COMPONENTS>> EnabledComponents;
 		std::vector<std::string> Tags; // A category of entities, e.g. enemies. For maximum performance could use enum.
 		std::stack<size_t> AvailableIDs;
 
@@ -26,7 +27,7 @@ namespace Engine
 		{
 			std::apply([maxEntities](auto&&... args) {((args.resize(maxEntities)), ...); }, Pool);
 			Tags = std::vector<std::string>(maxEntities);
-			EnabledComponents = std::vector<size_t>(maxEntities);
+			EnabledComponents = std::vector<std::bitset<MAX_COMPONENTS>>(maxEntities);
 
 			for (size_t i = maxEntities - 1; i > 0; --i) { AvailableIDs.push(i); }
 			AvailableIDs.push(0); // Start from 0 for consistency.
@@ -81,7 +82,7 @@ namespace Engine
 		template <typename T>
 		bool HasComponent(size_t id)
 		{
-			size_t requiredComponents = (1 << tuple_element_index_v<std::vector<T>, ComponentPool>);
+			const std::bitset<MAX_COMPONENTS> requiredComponents = (1 << tuple_element_index_v<std::vector<T>, ComponentPool>);
 
 			auto componentsInBoth = requiredComponents & EnabledComponents[id];
 			if (componentsInBoth == requiredComponents) { return true; }
@@ -91,7 +92,7 @@ namespace Engine
 		template<typename... T>
 		bool HasComponents(size_t id)
 		{
-			size_t requiredComponents = (... + []() 
+			std::bitset<MAX_COMPONENTS> requiredComponents = (... + []()
 			{
 				return (1 << tuple_element_index_v<std::vector<T>, ComponentPool>);
 			}());
@@ -113,31 +114,36 @@ namespace Engine
 			AvailableIDs.push(id);
 		}
 
-		size_t GetEnabledComponents(size_t id)
+		std::bitset<MAX_COMPONENTS> GetEnabledComponents(size_t id) const
 		{
 			return EnabledComponents[id];
 		}
 
-		void SetEnabledComponents(size_t id, size_t enabledComponents)
+		std::bitset<MAX_COMPONENTS>& GetEnabledComponents(size_t id)
+		{
+			return EnabledComponents[id];
+		}
+
+		void SetEnabledComponents(size_t id, std::bitset<MAX_COMPONENTS> enabledComponents)
 		{
 			EnabledComponents[id] = enabledComponents;
 		}
 
-		ComponentSlice GetPoolSlice(int id)
+		ComponentSlice CreateSlice(size_t id)
 		{
-			ComponentSlice componentSlice;
-			auto copyComponentFromPool = []<typename T>(T& component, int id, ComponentPool& pool) { component = std::get<std::vector<T>>(pool)[id]; };
-			auto copyComponentsFromPool = [&copyComponentFromPool, id, this]<typename... T>(T&... component) { (copyComponentFromPool(component, id, Pool), ...); };
-			std::apply(copyComponentsFromPool, componentSlice);
-
-			return componentSlice;
+			return ComponentHelper<Components>::CreateSlice(Pool, id);
 		}
 
-		void SetPoolSlice(int id, ComponentSlice& componentSlice)
+		void UpdatePoolWithSlice(size_t id, ComponentSlice& componentSlice)
 		{
-			auto copyComponentToPool = []<typename T>(T & component, int id, ComponentPool & pool) { std::get<std::vector<T>>(pool)[id] = component; };
+			auto copyComponentToPool = []<typename T>(T& component, size_t id, ComponentPool& pool) { std::get<std::vector<T>>(pool)[id] = component; };
 			auto copyComponentsToPool = [&copyComponentToPool, id, this]<typename... T>(T&... component) { (copyComponentToPool(component, id, Pool), ...); };
 			std::apply(copyComponentsToPool, componentSlice);
+		}
+
+		ComponentReferenceSlice GetReferenceSlice(size_t id)
+		{
+			return ComponentHelper<Components>::CreateReferenceSlice(Pool, id);
 		}
 	};
 }

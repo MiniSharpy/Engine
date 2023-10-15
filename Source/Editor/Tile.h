@@ -1,12 +1,13 @@
 #pragma once
-#include <array>
-#include <bitset>
+#include "EntityComponentSystem/EntityMemoryPool.h"
 #include "../Maths/Vector2.h"
 #include "../EntityComponentSystem/Components.h"
-#include "../Core/Texture.h"
 #include "EntityComponentSystem/TupleHelper.h"
-#include <optional>
 #include <imgui.h>
+#include <array>
+#include <bitset>
+#include <tuple>
+
 
 namespace Engine
 {
@@ -20,36 +21,55 @@ namespace Engine
 	{
 	public:
 		Tile(TileAtlas& atlas, Vector2<int> index);
-		void TileEditor();
 
 		template <typename T>
 		const T& GetComponent() const
 		{
-			return std::get<T>(Components);
+			return std::get<T>(ComponentSliceData);
 		}
 
 		const ComponentSlice& GetComponents() const
 		{
-			return Components;
+			return ComponentSliceData;
 		}
 
-		const std::bitset<64>& GetEnabledComponents() const
+		template<typename T>
+		bool HasComponent()
+		{
+			return EnabledComponents[tuple_element_index_v<T, ComponentSlice>];
+		}
+
+		template<typename... T>
+		bool HasComponents()
+		{
+			std::bitset<MAX_COMPONENTS> requiredComponents = (... + []()
+			{
+				return (1 << tuple_element_index_v<T, ComponentSlice>);
+			}());
+
+			auto componentsInBoth = requiredComponents & EnabledComponents;
+			if (componentsInBoth == requiredComponents) { return true; }
+			return false;
+		}
+
+		const std::bitset<MAX_COMPONENTS>& GetEnabledComponents() const
 		{
 			return EnabledComponents;
 		}
 
+		std::bitset<MAX_COMPONENTS>& GetEnabledComponents()
+		{
+			return EnabledComponents;
+		}
+
+		ComponentReferenceSlice GetReferenceSlice()
+		{
+			return ComponentHelper<Components>::CreateReferenceSlice(ComponentSliceData);
+		}
+
 	private:
-		Vector2<int> Index;
-		Vector2<int> Size;
-		ComponentSlice Components;
-		std::bitset<64> EnabledComponents;
-		std::bitset<64> MandatoryComponents;
-		static constexpr int MaxTableColumn = 5;
-
-		Vector2<int> Snapping = { 64, 64 };
-
-
-		void CollisionEditor();
+		ComponentSlice ComponentSliceData;
+		std::bitset<MAX_COMPONENTS> EnabledComponents;
 
 		template <typename T>
 		void AddComponent()
@@ -62,41 +82,5 @@ namespace Engine
 		{
 			EnabledComponents[tuple_element_index_v<T, ComponentSlice>] = false;
 		}
-
-		template <typename T>
-		void SetComponentUI()
-		{
-			constexpr size_t index = tuple_element_index_v<T, ComponentSlice>;
-			const T& component = std::get<T>(Components);
-			const std::string label = typeid(component).name(); // Result is implementation dependent, MSVC is clear and understandable.
-
-			constexpr int column = index % MaxTableColumn;
-			if (column == 0)
-			{
-				ImGui::TableNextRow();
-			}
-			ImGui::TableSetColumnIndex(column);
-
-			ImGui::BeginDisabled(MandatoryComponents[index]);
-			{
-				bool isEnabled = EnabledComponents[index];
-				ImGui::Checkbox(("##" + label).c_str(), &isEnabled);
-				if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
-				{
-					ImGui::SetTooltip("%s", label.c_str());
-				}
-				EnabledComponents[index] = isEnabled;
-			}
-			ImGui::EndDisabled();
-		}
-
-		template <typename T>
-		void ComponentEditor() {}
 	};
-
-	template<>
-	void Tile::ComponentEditor<Position>();
-
-	template<>
-	void Tile::ComponentEditor<Collider>();
 }
