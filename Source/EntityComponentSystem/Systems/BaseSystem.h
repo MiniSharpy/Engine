@@ -4,7 +4,7 @@ namespace Engine
 	class BaseSystem
 	{
 	public:
-		virtual ~BaseSystem() {}
+		virtual ~BaseSystem() = default;
 		virtual void Update(float deltaTime) = 0;
 	};
 }

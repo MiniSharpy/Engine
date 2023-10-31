@@ -22,7 +22,9 @@ namespace Engine
 		/* STATIC METHODS */
 		static constexpr Vector2 Zero() { return { 0, 0 }; }
 		static constexpr Vector2 Up() { return { 0, -1 }; }
+		static constexpr Vector2 Down() { return { 0, 1 }; }
 		static constexpr Vector2 Right() { return { 1, 0 }; }
+		static constexpr Vector2 Left() { return { -1, 0 }; }
 		static Vector2 Clamp(Vector2 value, Vector2 minimum, Vector2 maximum) { return { std::clamp(value.X, minimum.X, maximum.X), std::clamp(value.Y, minimum.Y, maximum.Y) }; }
 		static T CrossProduct(Vector2 a, Vector2 b) { return a.X * b.Y - a.Y * b.X; }
 
@@ -111,7 +113,16 @@ namespace Engine
 			Y *= scale;
 		}
 
-		Vector2<T> Absolute() const
+		/// <summary>
+		/// Swizzle the X and Y components.
+		/// </summary>
+		/// <returns>The swapped X and Y.</returns>
+		Vector2 YX() const // TODO: Unit Test
+		{
+			return { Y, X };
+		}
+
+		Vector2 Absolute() const
 		{
 			return { std::abs(X), std::abs(Y) };
 		}

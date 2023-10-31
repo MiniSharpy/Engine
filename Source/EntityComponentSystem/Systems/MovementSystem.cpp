@@ -15,8 +15,9 @@ namespace Engine
 			if (entity.HasComponents<Position, Velocity>())
 			{
 				Velocity& velocity = entity.GetComponent<Velocity>();
-				entity.GetComponent<Position>() += velocity;
-				velocity = {};
+				velocity.Direction.Normalise();
+				entity.GetComponent<Position>() += velocity.Direction * velocity.Speed * deltaTime;
+				velocity.Direction = Vector2<float>::Zero();
 			}
 		}
 	}

@@ -5,7 +5,6 @@
 #include "../EntityComponentSystem/Entity.h"
 #include "../Pathfinding/NavigationGraph.h"
 
-
 namespace Engine
 {
 	class Renderer;
@@ -21,7 +20,6 @@ namespace Engine
 		~IsometricScene() override;
 
 		NavigationGraph ManagedNavigationGraph;
-
 
 		// There are two ways to store tile size. The first is currently used. TODO: Convert to the second?
 		// 1. Full tile size and division in calculation to get the base of the tile.

@@ -29,7 +29,8 @@ namespace Engine
 	{
 		SDL_Log("Renderer Initialisation!");
 
-		ManagedRenderer = SDL_CreateRenderer(window, -1, (SDL_RendererFlags)(SDL_RENDERER_PRESENTVSYNC | SDL_RENDERER_ACCELERATED));
+		// SDL_RENDERER_ACCELERATED flag will enforce hardware acceleration, failing if unavailable. By default the SDL renderer will try to use hardware, but fall back to software if unavailable.
+		ManagedRenderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_PRESENTVSYNC);
 		if (!ManagedRenderer)
 		{
 			SDL_Log("Error: %s\n", SDL_GetError());

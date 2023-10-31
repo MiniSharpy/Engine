@@ -15,7 +15,11 @@ namespace Engine
 		int Z; // Okay the addition of Z makes it confusing with the inherited operators and constructors.
 	};
 
-	struct Velocity : Vector2<float>{};
+	struct Velocity
+	{
+		float Speed;
+		Vector2<float> Direction;
+	};
 
 	struct Zoom
 	{
@@ -51,7 +55,7 @@ namespace Engine
 
 	struct Collider
 	{
-		std::vector<Vector2<float>> Points;
+		std::vector<Vector2<float>> Points; // An array might be better here for maximising cache hits, but it would mean setting a maximum size.
 		// TODO: Bitmask for affecting things like path finding, lighting, sound, etc.
 	};
 

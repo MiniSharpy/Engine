@@ -4,6 +4,7 @@
 #include "../EntityComponentSystem/Entity.h"
 #include "../EntityComponentSystem/EntityManager.h"
 #include "../EntityComponentSystem/Systems/BaseSystem.h"
+#include "../Input/Action.h"
 #include <memory>
 
 
@@ -19,11 +20,13 @@ namespace Engine
 
 	public:
 		Entity MainCamera;
+		std::vector<Action> Actions;
 
 		BaseScene() : MainCamera{ ManagedEntityManager.AddEntity("Camera") }
 		{
 			MainCamera.AddComponent<Position>();
 			MainCamera.AddComponent<Velocity>();
+			MainCamera.GetComponent<Velocity>().Speed = 512;
 			MainCamera.AddComponent<Zoom>();
 			MainCamera.GetComponent<Zoom>().Value = 1;
 		}

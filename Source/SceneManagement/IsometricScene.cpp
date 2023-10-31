@@ -6,6 +6,11 @@
 #include "../EntityComponentSystem/EntityManager.h"
 #include "../EntityComponentSystem/Systems/EditorSystem.h"
 #include "../EntityComponentSystem/Systems/MovementSystem.h"
+#include "../Input/Action.h"
+#include "../Input/Input.h"
+#include "../Input/Modifiers/NegateModifier.h"
+#include "../Input/Modifiers/SwizzleModifier.h"
+#include "../Input/Modifiers/DeadzoneModifier.h"
 #include "Pathfinding/NavigationGraph.h"
 #include <memory>
 #include <SDL.h>
@@ -19,6 +24,64 @@ namespace Engine
 		// Initialiser lists copy construct, and because unique pointers can't be copy constructed need to add to the vector instead.
 		Systems.emplace_back(std::make_unique<EditorSystem>(*this)); // TODO: Construct and destruct when editor is enabled.
 		Systems.emplace_back(std::make_unique<MovementSystem>(*this));
+
+		// Input Setup
+		// Float
+		auto zoomBehaviour = [this](ActionValue value)
+		{
+			float zoomStep = 10.f;
+			// float zoom = value / zoomStep;
+			float zoom = std::get<float>(value) / zoomStep;
+			MainCamera.GetComponent<Zoom>().Value = std::clamp(MainCamera.GetComponent<Zoom>().Value + zoom, 0.5f, 2.f);
+		};
+
+		// Vector2
+		auto moveBehaviour = [this](ActionValue value)
+		{
+			// No need to constrain value as direction gets normalised anyway.
+			Velocity& velocity = MainCamera.GetComponent<Velocity>();
+			velocity.Direction += std::get<Vector2<float>>(value);
+		};
+
+		Action zoomAction(Float, zoomBehaviour);
+		zoomAction.BindInput("Mouse Wheel Y");
+		Actions.emplace_back(zoomAction);
+
+		Action moveAction(Vector2Float, moveBehaviour);
+
+		// W
+		moveAction.BindInput(SDL_GetScancodeName(SDL_SCANCODE_W));
+		moveAction.GetInput(SDL_GetScancodeName(SDL_SCANCODE_W))
+			.Modifiers.emplace_back(std::make_unique<SwizzleModifier>());
+		moveAction.GetInput(SDL_GetScancodeName(SDL_SCANCODE_W))
+			.Modifiers.emplace_back(std::make_unique<NegateModifier>());
+
+		// S
+		moveAction.BindInput(SDL_GetScancodeName(SDL_SCANCODE_S));
+		moveAction.GetInput(SDL_GetScancodeName(SDL_SCANCODE_S))
+			.Modifiers.emplace_back(std::make_unique<SwizzleModifier>());
+
+		// D
+		moveAction.BindInput(SDL_GetScancodeName(SDL_SCANCODE_D));
+
+		// A
+		moveAction.BindInput(SDL_GetScancodeName(SDL_SCANCODE_A));
+		moveAction.GetInput(SDL_GetScancodeName(SDL_SCANCODE_A))
+			.Modifiers.emplace_back(std::make_unique<NegateModifier>());
+
+		// Axis up
+		moveAction.BindInput(SDL_GameControllerGetStringForAxis(SDL_CONTROLLER_AXIS_LEFTY));
+		moveAction.GetInput(SDL_GameControllerGetStringForAxis(SDL_CONTROLLER_AXIS_LEFTY))
+			.Modifiers.emplace_back(std::make_unique<SwizzleModifier>());
+		moveAction.GetInput(SDL_GameControllerGetStringForAxis(SDL_CONTROLLER_AXIS_LEFTY))
+			.Modifiers.emplace_back(std::make_unique<DeadzoneModifier>());
+
+		// Axis right
+		moveAction.BindInput(SDL_GameControllerGetStringForAxis(SDL_CONTROLLER_AXIS_LEFTX));
+		moveAction.GetInput(SDL_GameControllerGetStringForAxis(SDL_CONTROLLER_AXIS_LEFTX))
+			.Modifiers.emplace_back(std::make_unique<DeadzoneModifier>());
+
+		Actions.emplace_back(moveAction);
 	}
 
 	IsometricScene::~IsometricScene()
@@ -29,36 +92,6 @@ namespace Engine
 	void IsometricScene::Update(float deltaTime)
 	{
 		BaseScene::Update(deltaTime);
-
-		{ // TODO: Remove. Temp camera movement for testing this should be in a system.
-			float speed = 512.f;
-			Velocity velocity;
-			Events& events = Events::Instance();
-			if (events.IsKeyDown(SDL_SCANCODE_D)) // Move Right
-			{
-				velocity += Vector2<float>::Right();
-			}
-			if (events.IsKeyDown(SDL_SCANCODE_A)) // Move Left
-			{
-				velocity -= Vector2<float>::Right();
-			}
-			if (events.IsKeyDown(SDL_SCANCODE_S)) // Move Down
-			{
-				velocity -= Vector2<float>::Up();
-			}
-			if (events.IsKeyDown(SDL_SCANCODE_W)) // Move Up
-			{
-				velocity += Vector2<float>::Up();
-			}
-			velocity.Normalise(); // Want to normalise so that diagonal movement isn't faster that a single direction.
-			velocity *= speed * deltaTime;
-
-			float zoomStep = 10.f;
-			float zoom = events.GetMouseWheelY() / zoomStep;
-
-			MainCamera.GetComponent<Velocity>() += velocity;
-			MainCamera.GetComponent<Zoom>().Value = std::clamp(MainCamera.GetComponent<Zoom>().Value + zoom, 0.5f, 2.f);
-		}
 	}
 
 	void IsometricScene::Render(Renderer& renderer)

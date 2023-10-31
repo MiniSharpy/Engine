@@ -24,6 +24,8 @@ namespace Engine
 		SDL_Log("Engine Initialisation!");
 
 		// Initialise SDL.
+		// SDL_INIT_VIDEO will automatically intialise the events subsystem.
+		// SDL_INIT_GAMECONTROLLER will automatically initialise the joystick subsystems.
 		if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_TIMER | SDL_INIT_GAMECONTROLLER) < 0)
 		{
 			SDL_Log("Error: %s\n", SDL_GetError());
@@ -53,7 +55,6 @@ namespace Engine
 		ImGui::CreateContext();
 		ImGuiIO& io = ImGui::GetIO();
 		io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
-		io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
 
 		// Setup Dear ImGui style.
 		ImGui::StyleColorsDark();
