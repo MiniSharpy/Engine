@@ -6,9 +6,7 @@
 #include <algorithm>
 #include <SDL.h>
 #include <imgui_impl_sdl.h>
-#include <map>
 #include "../Input/Input.h"
-
 
 namespace Engine
 {
@@ -193,16 +191,16 @@ namespace Engine
 				Input& input = action.GetInput(name);
 				input.CurrentProcessState = processState;
 
-				switch (action.Type)
+				switch (action.GetType())
 				{
 				case Trigger:
-					input.Value = std::monostate();
+					input.RawValue = std::monostate();
 					break;
 				case Float:
-					input.Value = 1.0f;
+					input.RawValue = 1.0f;
 					break;
 				case Vector2Float:
-					input.Value = Vector2<float>::Right();
+					input.RawValue = Vector2<float>::Right();
 					break;
 				}
 			}
@@ -219,16 +217,16 @@ namespace Engine
 				Input& input = action.GetInput(name);
 				input.CurrentProcessState = processState;
 
-				switch (action.Type)
+				switch (action.GetType())
 				{
 				case Trigger:
-					input.Value = std::monostate();
+					input.RawValue = std::monostate();
 					break;
 				case Float:
-					input.Value = value;
+					input.RawValue = value;
 					break;
 				case Vector2Float:
-					input.Value = Vector2<float>::Right() * value;
+					input.RawValue = Vector2<float>::Right() * value;
 					break;
 				}
 			}
@@ -245,16 +243,16 @@ namespace Engine
 				Input& input = action.GetInput(name);
 				input.CurrentProcessState = processState;
 
-				switch (action.Type)
+				switch (action.GetType())
 				{
 				case Trigger:
-					input.Value = std::monostate();
+					input.RawValue = std::monostate();
 					break;
 				case Float:
-					input.Value = value.Length(); // TODO: Is this a reasonable expectation?
+					input.RawValue = value.Length(); // TODO: Is this a reasonable expectation?
 					break;
 				case Vector2Float:
-					input.Value = value;
+					input.RawValue = value;
 					break;
 				}
 			}

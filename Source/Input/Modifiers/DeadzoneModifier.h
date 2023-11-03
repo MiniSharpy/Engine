@@ -2,20 +2,23 @@
 #include "Modifier.h"
 namespace Engine
 {
-	class DeadzoneModifier : public Modifier
+	class DeadZoneModifier : public Modifier
 	{
 	private:
-		inline static float Deadzone = 0.20f;
+		inline static float DeadZone = 0.20f;
 	public:
 		void Process(float& value) override
 		{
-			value = abs(value) > Deadzone ? value : 0;
+			// Axial, effectively.
+			value = abs(value) > DeadZone ? value : 0;
 		}
 
 		void Process(Vector2<float>& value) override
 		{
-			value.X = abs(value.X) > Deadzone ? value.X : 0;
-			value.Y = abs(value.Y) > Deadzone ? value.Y : 0;
+			// https://web.archive.org/web/20190129113357/http://www.third-helix.com/2013/04/12/doing-thumbstick-dead-zones-right.html
+			// Axial
+			value.X = abs(value.X) > DeadZone ? value.X : 0;
+			value.Y = abs(value.Y) > DeadZone ? value.Y : 0;
 		}
 	};
 }

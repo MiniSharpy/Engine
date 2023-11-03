@@ -3,15 +3,7 @@
 namespace Engine
 {
 	Action::Action(ActionType type, std::function<void(ActionValue)> boundFunction)
-		: Type(type), BoundFunction(std::move(boundFunction)), BoundInputs({})
-	{
-
-	}
-
-	void Action::BindInput(const std::string& inputName)
-	{
-		BoundInputs.emplace(inputName, Input{ Type, inputName }); // Input has no blank constructor, need to use emplace.
-	}
+		: Type(type), BoundFunction(std::move(boundFunction)) {}
 
 	void Action::Process()
 	{
@@ -63,7 +55,7 @@ namespace Engine
 		float highestValue = 0;
 		for (Input& input : inputsToProcess)
 		{
-			float value = std::get<float>(input.Value);
+			float value = std::get<float>(input.RawValue);
 			for (const auto& modifier : input.Modifiers)
 			{
 				modifier->Process(value);
@@ -89,10 +81,13 @@ namespace Engine
 
 		if (inputsToProcess.empty()) { return; }
 
+		// TODO: Bool for inputs accumulate or taking highest value.
+		// For something like moving then accumulate might work better as it ends up normalised anyway and it means
+		// that up/down, etc. movement can cancel itself out.
 		Vector2<float> highestValue = Vector2<float>::Zero();
 		for (Input& input : inputsToProcess)
 		{
-			Vector2<float> value = std::get<Vector2<float>>(input.Value);
+			Vector2<float> value = std::get<Vector2<float>>(input.RawValue);
 			for (const auto& modifier : input.Modifiers)
 			{
 				modifier->Process(value);
@@ -113,4 +108,6 @@ namespace Engine
 	bool Action::HasInput(const std::string& string) const { return BoundInputs.contains(string); }
 
 	Input& Action::GetInput(const std::string& string) { return BoundInputs.find(string)->second; }
+
+	const ActionType Action::GetType() { return Type; }
 }

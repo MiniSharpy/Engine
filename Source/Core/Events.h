@@ -1,10 +1,10 @@
 #pragma once
 #include "../Input/Input.h"
-
-struct SDL_Window;
 #include "../Maths/Vector2.h"
 #include <SDL.h>
 #include <vector>
+
+struct SDL_Window;
 
 namespace Engine
 {
@@ -50,6 +50,7 @@ namespace Engine
 		std::vector<SDL_GameController*> Controllers;
 		Vector2<int> WindowSize; // This should probably be on the window.
 
+		// TODO: Need to consider how to handle button press, button release.
 		/// <summary>
 		/// Update input mapping with new values when triggered.
 		/// </summary>

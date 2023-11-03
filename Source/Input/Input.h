@@ -2,8 +2,7 @@
 #include "../Maths/Vector2.h"
 #include "InputMisc.h"
 #include "Modifiers/Modifier.h"
-#include <string>
-#include <variant>
+#include <memory>
 
 namespace Engine
 {
@@ -14,18 +13,18 @@ namespace Engine
 	{
 	public:
 		/// <summary>
-		/// The name of the input, and which corresponds to a map for the SDL event loop to access Inputs. 
+		/// A collection of modifiers that process the input's value.
+		///	These do not alter the object's value itself, this is so that modifiers don't just undo what they did the
+		///	following frame, E.G. Negate, and negate again to end up with the original value.
+		///	Instead, the action object creates a copy that is passed as the actual intended type to overloaded methods
+		///	on the modifier.
 		/// </summary>
-		std::string Name;
-
-		// TODO: Ideally want this to be a unique_ptr, but input copies seem to be messing with this.
-		std::vector<std::shared_ptr<Modifier>> Modifiers;
+		std::vector<std::unique_ptr<Modifier>> Modifiers;
 
 		/// <summary>
-		/// Value set by the event loop, accessed via a map from SDL converted strings
-		/// to Inputs.
+		/// Raw value set by the event loop before any modification. 
 		/// </summary>
-		ActionValue Value;
+		ActionValue RawValue;
 
 		/// <summary>
 		/// SDL's event loop only handles events for that last key pressed, so to support multiple keys
@@ -34,13 +33,12 @@ namespace Engine
 		/// </summary>
 		ProcessState CurrentProcessState = Stop;
 
-		/// <summary>
-		/// Setup the name for events loop to find the object, as well as defining the conditions and modifiers
-		///	for the input.
-		///	The action object handles setting the default value.
-		/// </summary>
-		/// <param name="owningAction"></param>
-		/// <param name="inputName"></param>
-		Input(ActionType type, std::string inputName);
+		Input() = default;
+
+		// As we're dealing with unique pointers we don't want any copying as it results in a very unclear compiler error.
+		Input(const Input& other) = delete; // Copy Constructor
+		Input& operator=(const Input& other) = delete; // Copy assignment
+		Input(Input&& other) noexcept = default; // Move Constructor
+		Input& operator=(Input&& other) noexcept = default; // Move Assignment
 	};
 }
