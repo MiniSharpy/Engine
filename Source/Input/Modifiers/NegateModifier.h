@@ -7,12 +7,12 @@ namespace Engine
 	class NegateModifier : public Modifier
 	{
 	public:
-		void Process(float& value) override
+		void operator()(float& value) override
 		{
 			value = -value;
 		}
 
-		void Process(Vector2<float>& value) override
+		void operator()(Vector2<float>& value) override
 		{
 			value.X = -value.X;
 			value.Y = -value.Y;

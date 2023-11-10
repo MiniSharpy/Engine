@@ -36,6 +36,26 @@ namespace Engine
 		return SDL_JoystickInstanceID(SDL_GameControllerGetJoystick(controller));
 	}
 
+	const char* Events::GetMouseButtonName(Uint8 button)
+	{
+		switch (button)
+		{
+		case SDL_BUTTON_LEFT:
+			return "Mouse Button Left";
+		case SDL_BUTTON_MIDDLE:
+			return "Mouse Button Middle";
+		case SDL_BUTTON_RIGHT:
+			return "Mouse Button Right";
+		case SDL_BUTTON_X1:
+			return "Mouse Button Extra1";
+		case SDL_BUTTON_X2:
+			return "Mouse Button Extra2";
+		default:
+			return "";
+		}
+	}
+
+
 	bool Events::Process()
 	{
 		float deltaTime = 1;
@@ -70,25 +90,35 @@ namespace Engine
 				{
 					Renderer::Instance().SetVSync(1);
 				}
-				UpdateInputIfMappingFound(SDL_GetScancodeName(event.key.keysym.scancode), Continuous, true);
+				UpdateMappedInputs(SDL_GetScancodeName(event.key.keysym.scancode), Continuous);
 				break;
 			}
 			case SDL_KEYUP:
-				UpdateInputIfMappingFound(SDL_GetScancodeName(event.key.keysym.scancode), Stop, false);
+				UpdateMappedInputs(SDL_GetScancodeName(event.key.keysym.scancode), Release);
 				break;
 			case SDL_MOUSEMOTION:
 				MousePosition.X = event.motion.x;
 				MousePosition.Y = event.motion.y;
+				UpdateMappedInputs("Mouse Axis X", Once, (float)event.motion.xrel);
+				UpdateMappedInputs("Mouse Axis Y", Once, (float)event.motion.yrel);
 				break;
 			case SDL_MOUSEBUTTONDOWN:
-				MouseButtonBitField |= 1 << (event.button.button - 1);
+				MouseButtonBitField |= SDL_BUTTON(event.button.button);
+				UpdateMappedInputs(
+					GetMouseButtonName(event.button.button),
+					Continuous,
+					Vector2<float>(event.button.x, event.button.y));
 				break;
 			case SDL_MOUSEBUTTONUP:
-				MouseButtonBitField &= ~(1 << (event.button.button - 1));
+				MouseButtonBitField &= ~SDL_BUTTON(event.button.button);
+				UpdateMappedInputs(
+					GetMouseButtonName(event.button.button),
+					Release,
+					Vector2<float>(event.button.x, event.button.y));
 				break;
 			case SDL_MOUSEWHEEL:
 				MouseWheelY = event.wheel.y;
-				UpdateInputIfMappingFound("Mouse Wheel Y", Once, (float)MouseWheelY);
+				UpdateMappedInputs("Mouse Wheel Y", Once, event.wheel.preciseY);
 				break;
 			case SDL_CONTROLLERDEVICEADDED:
 				// This seems to handle initial start up, meaning no need to manually iterate over IDs in constructor.
@@ -104,7 +134,7 @@ namespace Engine
 				{
 					if (event.cdevice.which == GetControllerJoystickInstanceID(Controllers[i]))
 					{
-						SDL_GameControllerClose(Controllers[i]); // Might want to RAIIfy this at some point so erasing will handle this.
+						SDL_GameControllerClose(Controllers[i]); // Want to RAIIfy this at some point so erasing will handle this.
 						Controllers.erase(Controllers.begin() + i);
 						break;
 					}
@@ -115,21 +145,35 @@ namespace Engine
 				{
 					if (event.cbutton.which == GetControllerJoystickInstanceID(controller))
 					{
+						UpdateMappedInputs(
+							SDL_GameControllerGetStringForButton((SDL_GameControllerButton)event.cbutton.button),
+							Continuous);
+					}
+				}
+				break;
+			case SDL_CONTROLLERBUTTONUP:
+				for (auto& controller : Controllers)
+				{
+					if (event.cbutton.which == GetControllerJoystickInstanceID(controller))
+					{
+						UpdateMappedInputs(
+							SDL_GameControllerGetStringForButton((SDL_GameControllerButton)event.cbutton.button),
+							Release);
 					}
 				}
 				break;
 			case SDL_CONTROLLERAXISMOTION:
 				for (auto& controller : Controllers)
 				{
-					if (event.cbutton.which == GetControllerJoystickInstanceID(controller))
+					if (event.caxis.which == GetControllerJoystickInstanceID(controller))
 					{
 						// Normalise axis to a value between -1 and 1.
 						float value = event.caxis.value < 0
-						? -static_cast<float>(event.caxis.value) / std::numeric_limits<Sint16>::min()
-						: static_cast<float>(event.caxis.value) / std::numeric_limits<Sint16>::max();
-						UpdateInputIfMappingFound(
+							? -static_cast<float>(event.caxis.value) / std::numeric_limits<Sint16>::min()
+							: static_cast<float>(event.caxis.value) / std::numeric_limits<Sint16>::max();
+						UpdateMappedInputs(
 							SDL_GameControllerGetStringForAxis(static_cast<SDL_GameControllerAxis>(event.caxis.axis)),
-							Continuous, 
+							Continuous,
 							value);
 					}
 				}
@@ -142,7 +186,7 @@ namespace Engine
 		{
 			action.Process();
 		}
-		
+
 		return true;
 	}
 
@@ -181,80 +225,77 @@ namespace Engine
 		MouseWheelY = 0;
 	}
 
-	void Events::UpdateInputIfMappingFound(const std::string& name, const ProcessState processState, bool value)
+	void Events::UpdateMappedInputs(const std::string& name, const ProcessState processState)
 	{
 		std::vector<Action>& actions = SceneManager::Instance().GetCurrentScene().Actions;
 		for (auto& action : actions)
 		{
-			if (action.HasInput(name))
-			{
-				Input& input = action.GetInput(name);
-				input.CurrentProcessState = processState;
+			if (!action.HasInput(name)) { continue; }
 
-				switch (action.GetType())
-				{
-				case Trigger:
-					input.RawValue = std::monostate();
-					break;
-				case Float:
-					input.RawValue = 1.0f;
-					break;
-				case Vector2Float:
-					input.RawValue = Vector2<float>::Right();
-					break;
-				}
+			Input& input = action.GetInput(name);
+			input.CurrentProcessState = processState;
+
+			switch (action.GetType())
+			{
+			case Trigger:
+				input.RawValue = std::monostate();
+				break;
+			case Float:
+				input.RawValue = 1.0f;
+				break;
+			case Vector2Float:
+				input.RawValue = Vector2<float>::Right();
+				break;
 			}
 		}
 	}
 
-	void Events::UpdateInputIfMappingFound(const std::string& name, const ProcessState processState, float value)
+	void Events::UpdateMappedInputs(const std::string& name, const ProcessState processState, float value)
 	{
 		std::vector<Action>& actions = SceneManager::Instance().GetCurrentScene().Actions;
 		for (auto& action : actions)
 		{
-			if (action.HasInput(name))
-			{
-				Input& input = action.GetInput(name);
-				input.CurrentProcessState = processState;
+			if (!action.HasInput(name)) { continue; }
 
-				switch (action.GetType())
-				{
-				case Trigger:
-					input.RawValue = std::monostate();
-					break;
-				case Float:
-					input.RawValue = value;
-					break;
-				case Vector2Float:
-					input.RawValue = Vector2<float>::Right() * value;
-					break;
-				}
+			Input& input = action.GetInput(name);
+			input.CurrentProcessState = processState;
+
+			switch (action.GetType())
+			{
+			case Trigger:
+				input.RawValue = std::monostate();
+				break;
+			case Float:
+				input.RawValue = value;
+				break;
+			case Vector2Float:
+				input.RawValue = Vector2<float>::Right() * value;
+				break;
 			}
 		}
 	}
 
-	void Events::UpdateInputIfMappingFound(const std::string& name, const ProcessState processState, Vector2<float> value)
+	void Events::UpdateMappedInputs(const std::string& name, const ProcessState processState, Vector2<float> value)
 	{
 		std::vector<Action>& actions = SceneManager::Instance().GetCurrentScene().Actions;
 		for (auto& action : actions)
 		{
-			if (action.HasInput(name))
-			{
-				Input& input = action.GetInput(name);
-				input.CurrentProcessState = processState;
+			if (!action.HasInput(name)) { continue; }
 
-				switch (action.GetType())
-				{
-				case Trigger:
-					input.RawValue = std::monostate();
-					break;
-				case Float:
-					input.RawValue = value.Length(); // TODO: Is this a reasonable expectation?
-					break;
-				case Vector2Float:
-					input.RawValue = value;
-					break;
-				}
+			Input& input = action.GetInput(name);
+			input.CurrentProcessState = processState;
+
+			switch (action.GetType())
+			{
+			case Trigger:
+				input.RawValue = std::monostate();
+				break;
+			case Float:
+				input.RawValue = value.Length(); // TODO: Is this a reasonable expectation?
+				break;
+			case Vector2Float:
+				input.RawValue = value;
+				break;
 			}
 		}
 	}

@@ -5,8 +5,8 @@ namespace Engine
 	{
 	public:
 		virtual ~Modifier() = default;
-		virtual void Process(float& value) = 0;
-		virtual void Process(Vector2<float>& value) = 0;
+		virtual void operator()(float& value) = 0;
+		virtual void operator()(Vector2<float>& value) = 0;
 	};
 }
 

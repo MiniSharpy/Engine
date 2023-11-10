@@ -7,107 +7,122 @@ namespace Engine
 
 	void Action::Process()
 	{
+		auto enabled = [](const Input& input) { return input.CurrentProcessState != Stop; };
+		auto conditions = [](const Input& input)
+		{
+			for (auto&& condition : input.Conditions)
+			{
+				if (!(*condition)(input))
+				{
+					return false;
+				}
+			}
+			return true;
+		};
+
+		// This is lazily evaluated and the modifiers alter their own state, so it must not be handled until
+		// the for each loop otherwise a condition could change. E.G. PressedCondition will set its previous
+		// process state which if called multiple times will result in it treating an input as a hold when
+		// it's actually only been pressed.
+		auto inputsToProcess =
+			BoundInputs
+			| std::views::values
+			| std::views::filter(enabled)
+			| std::views::filter(conditions);
+
 		switch (Type)
 		{
 		case Trigger:
-			ProcessTrigger();
+			ProcessTrigger(inputsToProcess);
 			break;
 		case Float:
-			ProcessFloat();
+			ProcessFloat(inputsToProcess);
 			break;
 		case Vector2Float:
-			ProcessVector();
+			ProcessVector(inputsToProcess);
 			break;
 		}
 	}
 
-	void Action::ProcessTrigger()
+	void Action::ProcessTrigger(auto inputsToProcess)
 	{
-		bool isCallingFunction = false;
-		for (auto& input : BoundInputs | std::views::values)
+		bool execute = false;
+		for (auto& input : inputsToProcess)
 		{
-			if (input.CurrentProcessState != Stop)
-			{
-				isCallingFunction = true;
-			}
-
-			if (input.CurrentProcessState == Once)
+			execute = true;
+			if (input.CurrentProcessState != Continuous)
 			{
 				input.CurrentProcessState = Stop;
 			}
 		}
 
-		if (isCallingFunction)
+		if (execute)
 		{
 			BoundFunction(std::monostate());
 		}
 	}
 
-	void Action::ProcessFloat()
+	void Action::ProcessFloat(auto inputsToProcess)
 	{
-		auto inputsToProcess = 
-			BoundInputs | 
-			std::views::values |
-			std::views::filter([](const Input& input) { return input.CurrentProcessState != ProcessState::Stop; });
-
-		if (inputsToProcess.empty()) { return; }
-
+		bool execute = false;
 		float highestValue = 0;
 		for (Input& input : inputsToProcess)
 		{
+			execute = true;
 			float value = std::get<float>(input.RawValue);
 			for (const auto& modifier : input.Modifiers)
 			{
-				modifier->Process(value);
+				(*modifier)(value);
 			}
 
 			highestValue = abs(value) > abs(highestValue) ? value : highestValue;
 
-			if (input.CurrentProcessState == Once)
+			if (input.CurrentProcessState != Continuous)
 			{
 				input.CurrentProcessState = Stop;
 			}
 		}
 
-		BoundFunction(highestValue);
+		if (execute)
+		{
+			BoundFunction(highestValue);
+		}
 	}
 
-	void Action::ProcessVector()
+	void Action::ProcessVector(auto inputsToProcess)
 	{
-		auto inputsToProcess = 
-			BoundInputs | 
-			std::views::values |
-			std::views::filter([](const Input& input) { return input.CurrentProcessState != ProcessState::Stop; });
-
-		if (inputsToProcess.empty()) { return; }
-
 		// TODO: Bool for inputs accumulate or taking highest value.
 		// For something like moving then accumulate might work better as it ends up normalised anyway and it means
 		// that up/down, etc. movement can cancel itself out.
+		bool execute = false;
 		Vector2<float> highestValue = Vector2<float>::Zero();
 		for (Input& input : inputsToProcess)
 		{
+			execute = true;
 			Vector2<float> value = std::get<Vector2<float>>(input.RawValue);
 			for (const auto& modifier : input.Modifiers)
 			{
-				modifier->Process(value);
+				(*modifier)(value);
 			}
 
 			highestValue.X = abs(value.X) > abs(highestValue.X) ? value.X : highestValue.X;
 			highestValue.Y = abs(value.Y) > abs(highestValue.Y) ? value.Y : highestValue.Y;
 
-			if (input.CurrentProcessState == Once)
+			if (input.CurrentProcessState != Continuous)
 			{
 				input.CurrentProcessState = Stop;
 			}
 		}
 
-		BoundFunction(highestValue);
+		if (execute)
+		{
+			BoundFunction(highestValue);
+		}
 	}
 
 	bool Action::HasInput(const std::string& string) const { return BoundInputs.contains(string); }
 
 	Input& Action::GetInput(const std::string& string) { return BoundInputs.find(string)->second; }
 
-	const ActionType Action::GetType() { return Type; }
+	ActionType Action::GetType() const { return Type; }
 }

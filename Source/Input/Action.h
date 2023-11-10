@@ -32,11 +32,11 @@ namespace Engine
 		/// A mapping from the name of an input to the input object itself. 
 		/// </summary>
 		std::map<std::string, Input> BoundInputs;
-
 	public:
 
 		/// <param name="type">The type of value that needs to be passed to the bound function.</param>
 		/// <param name="boundFunction">The logic to be executed when bound inputs are triggered.</param>
+		/// or when the input is released.</param>
 		Action(ActionType type, std::function<void(ActionValue)> boundFunction);
 
 		// No copies as Input objects contain unique pointers.
@@ -54,42 +54,42 @@ namespace Engine
 		void BindInput(const std::string& inputName)
 		{
 			Input input = Input();
-			([&input]() {input.Modifiers.emplace_back(std::make_unique<T>()); }(), ...);
-			
+			(input.Modifiers.emplace_back(std::make_unique<T>()), ...);
+
 			BoundInputs.emplace(inputName, std::move(input));
 		}
-		// TODO: BindInput with non-default modifiers. Probably need perfect forwarding.
 
 		/// <summary>
-		///	Conditionally calls the corresponding ProcessType() function which handles the input's modifiers,
-		///	and creating its final value.
+		///	Filters inputs that need to be processed and the conditionally calls the corresponding
+		///	ProcessType() function depending on the action's value. Input's modifiers are then processed,
+		///	the final value created, and the bound function called.
 		/// </summary>
 		void Process();
 
 		bool HasInput(const std::string& string) const;
 		Input& GetInput(const std::string& string);
 
-		const ActionType GetType();
+		ActionType GetType() const;
 
 	private:
 		/// <summary>
 		/// Iterates over all bound inputs, handling those that need to be processed, and then calls the bound
 		/// function if one is found.
 		/// </summary>
-		void ProcessTrigger();
+		void ProcessTrigger(auto inputsToProcess);
 
 		/// <summary>
 		///	Iterates over all bound inputs, handling those that need to be processed, getting the highest absolute value,
 		///	and then calls the bound function with the final value as the parameter.
 		///	By using only the highest value it prevents multiple inputs compounding to create an unexpectedly high value.
 		/// </summary>
-		void ProcessFloat();
+		void ProcessFloat(auto inputsToProcess);
 
 		/// <summary>
 		///	Iterates over all bound inputs, handling those that need to be processed, getting the highest absolute X and Y
 		///	separately, and then calls the bound function with the final value as the parameter.
 		///	By using only the highest value it prevents multiple inputs compounding to create an unexpectedly high value.
 		/// </summary>
-		void ProcessVector();
+		void ProcessVector(auto inputsToProcess);
 	};
 }

@@ -20,7 +20,6 @@ namespace Engine
 		Texture(SDL_Texture* other) noexcept; // Move Constructor
 		Texture& operator=(const Texture& other) = delete; // Copy Assignment
 		Texture& operator=(Texture&& other) noexcept; // Move Assignment
-
 		Vector2<int> GetSize() const { return Size; }
 
 		operator SDL_Texture* () { return ManagedTexture; } // Returns managed texture when passed into a SDL_Texture * paramater.

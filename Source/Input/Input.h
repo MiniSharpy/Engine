@@ -2,12 +2,12 @@
 #include "../Maths/Vector2.h"
 #include "InputMisc.h"
 #include "Modifiers/Modifier.h"
+#include "Conditions/Condition.h"
 #include <memory>
 
 namespace Engine
 {
 	class Action;
-
 
 	class Input
 	{
@@ -22,6 +22,11 @@ namespace Engine
 		std::vector<std::unique_ptr<Modifier>> Modifiers;
 
 		/// <summary>
+		/// A collection of conditions that determine whether the input is able to be processed.
+		/// </summary>
+		std::vector<std::unique_ptr<Condition>> Conditions;
+
+		/// <summary>
 		/// Raw value set by the event loop before any modification. 
 		/// </summary>
 		ActionValue RawValue;
@@ -34,11 +39,24 @@ namespace Engine
 		ProcessState CurrentProcessState = Stop;
 
 		Input() = default;
+		~Input() = default;
 
 		// As we're dealing with unique pointers we don't want any copying as it results in a very unclear compiler error.
 		Input(const Input& other) = delete; // Copy Constructor
 		Input& operator=(const Input& other) = delete; // Copy assignment
 		Input(Input&& other) noexcept = default; // Move Constructor
 		Input& operator=(Input&& other) noexcept = default; // Move Assignment
+
+		template<typename T, typename... Args>
+		void AddModifier(Args&&... args)
+		{
+			Modifiers.emplace_back(std::make_unique<T>(std::forward<T>(args)...));
+		}
+
+		template<typename T, typename... Args>
+		void AddCondition(Args&&... args)
+		{
+			Conditions.emplace_back(std::make_unique<T>(std::forward<T>(args)...));
+		}
 	};
 }

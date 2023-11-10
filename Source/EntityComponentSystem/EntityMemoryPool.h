@@ -35,13 +35,15 @@ namespace Engine
 
 		size_t GetNextEntityIndex()
 		{
-			// Order of popping is important for undo/redo system, it must use a stack.
+			// Order of popping is important for undo/redo system, it must use a stack so that destroyed entity IDs are reused
+			// next rather than last. This has an added benefit of reducing memory fragmentation by keeping in use components
+			// closer together.
 			// As entity ID is stored by delete/create commands if an entity is deleted and then a new entity
 			// created the expected ID for the delete command undo would invalid as the ID has been moved to the end of the queue.
 			// With a queue it does:
 			// Create 1, Delete 1, Undo (which creates 2), Undo (which tries to delete 1), leaving entity 2 incorrectly still in existence.
 			// When it should be:
-			// Create 1, Delete 1, Undo (which creates 1), Undo (which deletes 1),.
+			// Create 1, Delete 1, Undo (which creates 1), Undo (which deletes 1)
 			size_t id = AvailableIDs.top();
 			AvailableIDs.pop();
 			return id;

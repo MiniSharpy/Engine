@@ -10,6 +10,9 @@
 #include "../Input/Modifiers/NegateModifier.h"
 #include "../Input/Modifiers/SwizzleModifier.h"
 #include "../Input/Modifiers/DeadZoneModifier.h"
+#include "../Input/Conditions/PressedCondition.h"
+#include "../Input/Conditions/ReleasedCondition.h"
+#include "../Input/Conditions/TapCondition.h"
 #include "Pathfinding/NavigationGraph.h"
 #include <memory>
 #include <SDL.h>
@@ -40,16 +43,41 @@ namespace Engine
 			velocity.Direction += std::get<Vector2<float>>(value);
 		};
 
+		auto pressedBehaviour = [this](ActionValue value)
+		{
+			SDL_Log("Pressed!");
+		};
+
+		auto releaseBehaviour = [this](ActionValue value)
+		{
+			SDL_Log("Release!");
+		};
+
+		auto tapBehaviour = [this](ActionValue value)
+		{
+			SDL_Log("Tap!");
+		};
+
+		auto mouseBehaviour = [this](ActionValue value)
+		{
+			auto mousePosition = std::get<Vector2<float>>(value);
+			SDL_Log("Mouse Position: {%f, %f}", mousePosition.X, mousePosition.Y);
+		};
+
 		// Input Binding
-		// Camera Zoom
+		// Camera Zoom.
 		Action zoomAction(Float, zoomBehaviour);
 		zoomAction.BindInput("Mouse Wheel Y");
-		zoomAction.BindInput<DeadZoneModifier>(SDL_GameControllerGetStringForAxis(SDL_CONTROLLER_AXIS_RIGHTY));
+		// TODO: Delta time modifiers. Also, sensitivity? Scalar modifier?
+		//zoomAction.BindInput<DeadZoneModifier>(SDL_GameControllerGetStringForAxis(SDL_CONTROLLER_AXIS_RIGHTY));
+		zoomAction.BindInput(SDL_GameControllerGetStringForAxis(SDL_CONTROLLER_AXIS_RIGHTY));
+		zoomAction.GetInput(SDL_GameControllerGetStringForAxis(SDL_CONTROLLER_AXIS_RIGHTY)).
+			AddModifier<DeadZoneModifier>();
 		zoomAction.BindInput<SwizzleModifier>(SDL_GetScancodeName(SDL_SCANCODE_UP));
 		zoomAction.BindInput<SwizzleModifier, NegateModifier>(SDL_GetScancodeName(SDL_SCANCODE_DOWN));
 		Actions.emplace_back(std::move(zoomAction));
 
-		// Camera Movement
+		// Camera Movement.
 		Action moveAction(Vector2Float, moveBehaviour);
 		moveAction.BindInput<SwizzleModifier, NegateModifier>(SDL_GetScancodeName(SDL_SCANCODE_W));
 		moveAction.BindInput<SwizzleModifier>(SDL_GetScancodeName(SDL_SCANCODE_S));
@@ -58,6 +86,27 @@ namespace Engine
 		moveAction.BindInput<SwizzleModifier, DeadZoneModifier>(SDL_GameControllerGetStringForAxis(SDL_CONTROLLER_AXIS_LEFTY));
 		moveAction.BindInput<DeadZoneModifier>(SDL_GameControllerGetStringForAxis(SDL_CONTROLLER_AXIS_LEFTX));
 		Actions.emplace_back(std::move(moveAction));
+
+		// Condition Tests.
+		Action pressAction(Trigger, pressedBehaviour);
+		pressAction.BindInput(SDL_GetScancodeName(SDL_SCANCODE_SPACE));
+		pressAction.GetInput(SDL_GetScancodeName(SDL_SCANCODE_SPACE)).AddCondition<PressedCondition>();
+		Actions.emplace_back(std::move(pressAction));
+
+		Action releaseAction(Trigger, releaseBehaviour);
+		releaseAction.BindInput(SDL_GetScancodeName(SDL_SCANCODE_SPACE));
+		releaseAction.GetInput(SDL_GetScancodeName(SDL_SCANCODE_SPACE)).AddCondition<ReleasedCondition>();
+		Actions.emplace_back(std::move(releaseAction));
+
+		Action tapAction(Trigger, tapBehaviour);
+		tapAction.BindInput(SDL_GetScancodeName(SDL_SCANCODE_SPACE));
+		tapAction.GetInput(SDL_GetScancodeName(SDL_SCANCODE_SPACE)).AddCondition<TapCondition>();
+		Actions.emplace_back(std::move(tapAction));
+
+		Action mouseAction(Vector2Float, mouseBehaviour);
+		mouseAction.BindInput("Mouse Button Left");
+		mouseAction.GetInput("Mouse Button Left").AddCondition<PressedCondition>();
+		Actions.emplace_back(std::move(mouseAction));
 	}
 
 	IsometricScene::~IsometricScene()

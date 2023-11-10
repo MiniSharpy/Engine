@@ -69,7 +69,10 @@ set(ALL_FILES
       
     "Input/InputMisc.h"
     "Input/Modifiers/Modifier.h"  
-    "Input/Modifiers/NegateModifier.h" "Input/Modifiers/SwizzleModifier.h" "Input/Modifiers/DeadZoneModifier.h")
+    "Input/Modifiers/NegateModifier.h" 
+    "Input/Modifiers/SwizzleModifier.h" 
+    "Input/Modifiers/DeadZoneModifier.h" 
+    "Input/Conditions/Condition.h" "Input/Conditions/PressedCondition.h" "Input/Conditions/ReleasedCondition.h" "Input/Conditions/TapCondition.h" )
 
 # Copy data folder to build directory. Hard links might be better, then there's less duplicate data. CMAKE_CURRENT_SOURCE_DIR might be better instead of LIST.
 add_custom_target(copy_assets COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_CURRENT_LIST_DIR}/Data ${CMAKE_CURRENT_BINARY_DIR}/Data)
