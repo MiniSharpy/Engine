@@ -10,6 +10,7 @@
 #include "../Input/Modifiers/NegateModifier.h"
 #include "../Input/Modifiers/SwizzleModifier.h"
 #include "../Input/Modifiers/DeadZoneModifier.h"
+#include "../Input/Modifiers/ScalarModifier.h"
 #include "../Input/Conditions/PressedCondition.h"
 #include "../Input/Conditions/ReleasedCondition.h"
 #include "../Input/Conditions/TapCondition.h"
@@ -30,9 +31,9 @@ namespace Engine
 		// Input Behaviour
 		auto zoomBehaviour = [this](ActionValue value)
 		{
-			float zoomStep = 10.f;
-			// float zoom = value / zoomStep;
+			constexpr float zoomStep = 10.f;
 			float zoom = std::get<float>(value) / zoomStep;
+
 			MainCamera.GetComponent<Zoom>().Value = std::clamp(MainCamera.GetComponent<Zoom>().Value + zoom, 0.5f, 2.f);
 		};
 
@@ -70,11 +71,11 @@ namespace Engine
 		zoomAction.BindInput("Mouse Wheel Y");
 		// TODO: Delta time modifiers. Also, sensitivity? Scalar modifier?
 		//zoomAction.BindInput<DeadZoneModifier>(SDL_GameControllerGetStringForAxis(SDL_CONTROLLER_AXIS_RIGHTY));
-		zoomAction.BindInput(SDL_GameControllerGetStringForAxis(SDL_CONTROLLER_AXIS_RIGHTY));
+		zoomAction.BindInput<ScalarModifier>(SDL_GameControllerGetStringForAxis(SDL_CONTROLLER_AXIS_RIGHTY), true);
 		zoomAction.GetInput(SDL_GameControllerGetStringForAxis(SDL_CONTROLLER_AXIS_RIGHTY)).
 			AddModifier<DeadZoneModifier>();
-		zoomAction.BindInput<SwizzleModifier>(SDL_GetScancodeName(SDL_SCANCODE_UP));
-		zoomAction.BindInput<SwizzleModifier, NegateModifier>(SDL_GetScancodeName(SDL_SCANCODE_DOWN));
+		zoomAction.BindInput<SwizzleModifier, ScalarModifier>(SDL_GetScancodeName(SDL_SCANCODE_UP), true);
+		zoomAction.BindInput<SwizzleModifier, NegateModifier, ScalarModifier>(SDL_GetScancodeName(SDL_SCANCODE_DOWN), true);
 		Actions.emplace_back(std::move(zoomAction));
 
 		// Camera Movement.

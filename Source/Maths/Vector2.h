@@ -21,6 +21,7 @@ namespace Engine
 	public:
 		/* STATIC METHODS */
 		static constexpr Vector2 Zero() { return { 0, 0 }; }
+		static constexpr Vector2 One() { return {1, 1}; }
 		static constexpr Vector2 Up() { return { 0, -1 }; }
 		static constexpr Vector2 Down() { return { 0, 1 }; }
 		static constexpr Vector2 Right() { return { 1, 0 }; }
@@ -52,7 +53,9 @@ namespace Engine
 
 		constexpr Vector2 operator* (const T right) const { return { X * right, Y * right }; };
 		constexpr Vector2& operator*= (const T right) { X *= right; Y *= right; return *this; };
+		constexpr Vector2& operator*= (const Vector2& right) { X *= right.X; Y *= right.Y; return *this; };
 		constexpr Vector2 operator/ (const T right) const { return { X / right, Y / right }; };
+		constexpr Vector2& operator/= (const  Vector2& right) { X /= right.X; Y /= right.Y; return *this; };
 		constexpr Vector2& operator/= (const T right) { X /= right; Y /= right; return *this; };
 
 		// Want to be able to compare to Vector2s of differing types.

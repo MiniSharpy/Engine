@@ -53,9 +53,9 @@ namespace Engine
 		/// <typeparam name="...T">The modifiers to default construct.</typeparam>
 		/// <param name="inputName">The name of the input that the underlying event loop updates.</param>
 		template<typename ...T>
-		void BindInput(const std::string& inputName)
+		void BindInput(const std::string& inputName, bool handleDeltaTime = false)
 		{
-			Input input = Input();
+			Input input = Input(handleDeltaTime);
 			(input.Modifiers.emplace_back(std::make_unique<T>()), ...);
 
 			BoundInputs.emplace(inputName, std::move(input));
@@ -66,7 +66,8 @@ namespace Engine
 		///	ProcessType() function depending on the action's value. Input's modifiers are then processed,
 		///	the final value created, and the bound function called.
 		/// </summary>
-		void Process();
+		/// <param name="deltaTime">The time between frames in seconds.</param>
+		void Process(float deltaTime);
 
 		bool HasInput(const std::string& string) const;
 		Input& GetInput(const std::string& string);
@@ -85,13 +86,13 @@ namespace Engine
 		///	and then calls the bound function with the final value as the parameter.
 		///	By using only the highest value it prevents multiple inputs compounding to create an unexpectedly high value.
 		/// </summary>
-		void ProcessFloat(auto inputsToProcess);
+		void ProcessFloat(auto inputsToProcess, float deltaTime);
 
 		/// <summary>
 		///	Iterates over all bound inputs, handling those that need to be processed, getting the highest absolute X and Y
 		///	separately, and then calls the bound function with the final value as the parameter.
 		///	By using only the highest value it prevents multiple inputs compounding to create an unexpectedly high value.
 		/// </summary>
-		void ProcessVector(auto inputsToProcess);
+		void ProcessVector(auto inputsToProcess, float deltaTime);
 	};
 }

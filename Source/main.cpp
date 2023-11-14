@@ -54,7 +54,7 @@ int main(int, char**)
 	// Main loop
 	Timer frameTimer;
 	double frameTime = settings.GetTargetFrameTime(); // Assume target frame time for first frame.
-	while (events.Process()) 
+	while (events.Process(frameTime)) 
 	{
 		game.Update((float)frameTime, settings, sceneManager.GetCurrentScene(), events);
 		renderer.Render(sceneManager.GetCurrentScene());

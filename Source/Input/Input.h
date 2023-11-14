@@ -38,7 +38,17 @@ namespace Engine
 		/// </summary>
 		ProcessState CurrentProcessState = Stop;
 
-		Input() = default;
+		/// <summary>
+		/// Some actions outputs are always multiplied by delta time elsewhere, while others depends on
+		/// the input influencing the value. E.G. Camera zoom with mouse wheel doesn't need delta time
+		/// as it occurs once, but camera zoom with axis or key occurs until dead zone or release.
+		/// TODO: Do as modifier. This would require changes to how modifiers are initialised, 
+		/// or use of singletones.
+		/// </summary>
+		bool handleDeltaTime;
+
+		Input() : handleDeltaTime{false} {};
+		Input(bool handleDeltaTime) : handleDeltaTime{handleDeltaTime} {};
 		~Input() = default;
 
 		// As we're dealing with unique pointers we don't want any copying as it results in a very unclear compiler error.

@@ -1,11 +1,12 @@
 #include "Action.h"
+#include <SDL.h>
 #include <ranges>
 namespace Engine
 {
 	Action::Action(ActionType type, std::function<void(ActionValue)> boundFunction, bool cumulateInputs)
 		: Type(type), BoundFunction(std::move(boundFunction)), CumulateInputs(cumulateInputs) {}
 
-	void Action::Process()
+	void Action::Process(float deltaTime)
 	{
 		auto enabled = [](const Input& input) { return input.CurrentProcessState != Stop; };
 		auto conditions = [](const Input& input)
@@ -36,10 +37,10 @@ namespace Engine
 			ProcessTrigger(inputsToProcess);
 			break;
 		case Float:
-			ProcessFloat(inputsToProcess);
+			ProcessFloat(inputsToProcess, deltaTime);
 			break;
 		case Vector2Float:
-			ProcessVector(inputsToProcess);
+			ProcessVector(inputsToProcess, deltaTime);
 			break;
 		}
 	}
@@ -62,10 +63,10 @@ namespace Engine
 		}
 	}
 
-	void Action::ProcessFloat(auto inputsToProcess)
+	void Action::ProcessFloat(auto inputsToProcess, float deltaTime)
 	{
 		bool execute = false;
-		float highestValue = 0;
+		float finalValue = 0;
 		for (Input& input : inputsToProcess)
 		{
 			execute = true;
@@ -75,17 +76,17 @@ namespace Engine
 				(*modifier)(value);
 			}
 
+			value *= input.handleDeltaTime ? deltaTime : 1;
+
 			if (CumulateInputs)
 			{
-				highestValue += value;
+				finalValue += value;
 			}
 			else
 			{
-				highestValue = abs(value) > abs(highestValue) ? value : highestValue;
+				finalValue = abs(value) > abs(finalValue) ? value : finalValue;
 			}
 			
-			
-
 			if (input.CurrentProcessState != Continuous)
 			{
 				input.CurrentProcessState = Stop;
@@ -94,17 +95,17 @@ namespace Engine
 
 		if (execute)
 		{
-			BoundFunction(highestValue);
+			BoundFunction(finalValue);
 		}
 	}
 
-	void Action::ProcessVector(auto inputsToProcess)
+	void Action::ProcessVector(auto inputsToProcess, float deltaTime)
 	{
 		// TODO: Bool for inputs accumulate or taking highest value.
 		// For something like moving then accumulate might work better as it ends up normalised anyway and it means
 		// that up/down, etc. movement can cancel itself out.
 		bool execute = false;
-		Vector2<float> highestValue = Vector2<float>::Zero();
+		Vector2<float> finalValue = Vector2<float>::Zero();
 		for (Input& input : inputsToProcess)
 		{
 			execute = true;
@@ -114,14 +115,16 @@ namespace Engine
 				(*modifier)(value);
 			}
 
+			value *= input.handleDeltaTime ? deltaTime : Vector2<float>::One();
+
 			if (CumulateInputs)
 			{
-				highestValue += value;
+				finalValue += value;
 			}
 			else
 			{
-				highestValue.X = abs(value.X) > abs(highestValue.X) ? value.X : highestValue.X;
-				highestValue.Y = abs(value.Y) > abs(highestValue.Y) ? value.Y : highestValue.Y;
+				finalValue.X = abs(value.X) > abs(finalValue.X) ? value.X : finalValue.X;
+				finalValue.Y = abs(value.Y) > abs(finalValue.Y) ? value.Y : finalValue.Y;
 			}
 
 			if (input.CurrentProcessState != Continuous)
@@ -132,7 +135,7 @@ namespace Engine
 
 		if (execute)
 		{
-			BoundFunction(highestValue);
+			BoundFunction(finalValue);
 		}
 	}
 
