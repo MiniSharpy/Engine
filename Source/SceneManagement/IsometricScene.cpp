@@ -78,7 +78,7 @@ namespace Engine
 		Actions.emplace_back(std::move(zoomAction));
 
 		// Camera Movement.
-		Action moveAction(Vector2Float, moveBehaviour);
+		Action moveAction(Vector2Float, moveBehaviour, true); // This will get normalised so combining inputs won't make you faster.
 		moveAction.BindInput<SwizzleModifier, NegateModifier>(SDL_GetScancodeName(SDL_SCANCODE_W));
 		moveAction.BindInput<SwizzleModifier>(SDL_GetScancodeName(SDL_SCANCODE_S));
 		moveAction.BindInput(SDL_GetScancodeName(SDL_SCANCODE_D));

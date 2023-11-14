@@ -32,12 +32,14 @@ namespace Engine
 		/// A mapping from the name of an input to the input object itself. 
 		/// </summary>
 		std::map<std::string, Input> BoundInputs;
+
+		bool CumulateInputs;
 	public:
 
 		/// <param name="type">The type of value that needs to be passed to the bound function.</param>
 		/// <param name="boundFunction">The logic to be executed when bound inputs are triggered.</param>
 		/// or when the input is released.</param>
-		Action(ActionType type, std::function<void(ActionValue)> boundFunction);
+		Action(ActionType type, std::function<void(ActionValue)> boundFunction, bool cumulateInputs = false);
 
 		// No copies as Input objects contain unique pointers.
 		Action(const Action& other) = delete; // Copy Constructor

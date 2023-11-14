@@ -2,8 +2,8 @@
 #include <ranges>
 namespace Engine
 {
-	Action::Action(ActionType type, std::function<void(ActionValue)> boundFunction)
-		: Type(type), BoundFunction(std::move(boundFunction)) {}
+	Action::Action(ActionType type, std::function<void(ActionValue)> boundFunction, bool cumulateInputs)
+		: Type(type), BoundFunction(std::move(boundFunction)), CumulateInputs(cumulateInputs) {}
 
 	void Action::Process()
 	{
@@ -75,7 +75,16 @@ namespace Engine
 				(*modifier)(value);
 			}
 
-			highestValue = abs(value) > abs(highestValue) ? value : highestValue;
+			if (CumulateInputs)
+			{
+				highestValue += value;
+			}
+			else
+			{
+				highestValue = abs(value) > abs(highestValue) ? value : highestValue;
+			}
+			
+			
 
 			if (input.CurrentProcessState != Continuous)
 			{
@@ -105,8 +114,15 @@ namespace Engine
 				(*modifier)(value);
 			}
 
-			highestValue.X = abs(value.X) > abs(highestValue.X) ? value.X : highestValue.X;
-			highestValue.Y = abs(value.Y) > abs(highestValue.Y) ? value.Y : highestValue.Y;
+			if (CumulateInputs)
+			{
+				highestValue += value;
+			}
+			else
+			{
+				highestValue.X = abs(value.X) > abs(highestValue.X) ? value.X : highestValue.X;
+				highestValue.Y = abs(value.Y) > abs(highestValue.Y) ? value.Y : highestValue.Y;
+			}
 
 			if (input.CurrentProcessState != Continuous)
 			{
