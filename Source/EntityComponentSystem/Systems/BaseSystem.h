@@ -5,6 +5,6 @@ namespace Engine
 	{
 	public:
 		virtual ~BaseSystem() = default;
-		virtual void Update(float deltaTime) = 0;
+		virtual void Update(const float& deltaTime) = 0;
 	};
 }

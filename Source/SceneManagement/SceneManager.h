@@ -23,10 +23,16 @@ namespace Engine
 		/// A map of all loaded scenes in memory.
 		/// </summary>
 		std::unordered_map<std::string, std::unique_ptr<BaseScene>> ScenesByName;
-		BaseScene& CurrentScene;
+		BaseScene* CurrentScene;
 
 	public:
-		BaseScene& GetCurrentScene() const { return CurrentScene; }
+		BaseScene& GetCurrentScene() const { return *CurrentScene; } // TODO: Handle undefined behaviour properly.
+		template<typename T> // TODO: Restrict to inherits from BaseClass
+		void LoadScene(float deltaTime)
+		{
+			ScenesByName.emplace("default", std::make_unique<T>(deltaTime));
+			CurrentScene = ScenesByName["default"].get();
+		}
 		// TODO: LoadScene<DerivedScene>(params); // Construct scene into ScenesByName, forwarding the necessary parameters.
 	};
 }

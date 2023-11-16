@@ -47,6 +47,6 @@ namespace Engine
 		UndoManager OwnedUndoManager;
 
 	public:
-		virtual void Update(float deltaTime);
+		virtual void Update(const float& deltaTime);
 	};
 }

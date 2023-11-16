@@ -9,7 +9,7 @@ namespace Engine
 	{
 	public:
 		MovementSystem(BaseScene& scene);
-		virtual void Update(float deltaTime);
+		virtual void Update(const float& deltaTime);
 	private:
 		BaseScene& OwningScene;
 	};

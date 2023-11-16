@@ -16,7 +16,7 @@ namespace Engine
 		/// Scenes should never be constructed manually, only through scene manager! 
 		/// See SceneManager.h for explanation.
 		/// </summary>
-		IsometricScene();
+		IsometricScene(const float& deltaTime);
 		~IsometricScene() override;
 
 		NavigationGraph ManagedNavigationGraph;
@@ -26,7 +26,7 @@ namespace Engine
 		// 2. Just the base of the tile size, already divided.
 		Vector2<int> TileSize = { 128, 128 };
 
-		void Update(float deltaTime) override;
+		void Update(const float& deltaTime) override;
 		void Render(Renderer& renderer) override;
 		void RenderScene(Renderer& renderer);
 		void RenderGrid(Renderer& renderer);

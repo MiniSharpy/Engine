@@ -11,6 +11,7 @@
 #include "../Input/Modifiers/SwizzleModifier.h"
 #include "../Input/Modifiers/DeadZoneModifier.h"
 #include "../Input/Modifiers/ScalarModifier.h"
+#include "../Input/Modifiers/DeltaTimeModifier.h"
 #include "../Input/Conditions/PressedCondition.h"
 #include "../Input/Conditions/ReleasedCondition.h"
 #include "../Input/Conditions/TapCondition.h"
@@ -21,11 +22,12 @@
 
 namespace Engine
 {
-	IsometricScene::IsometricScene() : ManagedNavigationGraph(NavigationGraph(*this))
+	IsometricScene::IsometricScene(const float& deltaTime) : BaseScene(deltaTime), ManagedNavigationGraph(NavigationGraph(*this))
 	{
 		// Base class constructor is called implicitly.
 		// Initialiser lists copy construct, and because unique pointers can't be copy constructed need to add to the vector instead.
-		Systems.emplace_back(std::make_unique<EditorSystem>(*this)); // TODO: Construct and destruct when editor is enabled.
+		Systems.emplace_back(std::make_unique<EditorSystem>(*this));
+		// TODO: Construct and destruct when editor is enabled.
 		Systems.emplace_back(std::make_unique<MovementSystem>(*this));
 
 		// Input Behaviour
@@ -44,24 +46,15 @@ namespace Engine
 			velocity.Direction += std::get<Vector2<float>>(value);
 		};
 
-		auto pressedBehaviour = [this](ActionValue value)
-		{
-			SDL_Log("Pressed!");
-		};
+		auto pressedBehaviour = [this](ActionValue value) { SDL_Log("Pressed!"); };
 
-		auto releaseBehaviour = [this](ActionValue value)
-		{
-			SDL_Log("Release!");
-		};
+		auto releaseBehaviour = [this](ActionValue value) { SDL_Log("Release!"); };
 
-		auto tapBehaviour = [this](ActionValue value)
-		{
-			SDL_Log("Tap!");
-		};
+		auto tapBehaviour = [this](ActionValue value) { SDL_Log("Tap!"); };
 
 		auto mouseBehaviour = [this](ActionValue value)
 		{
-			auto mousePosition = std::get<Vector2<float>>(value);
+			Vector2 mousePosition = std::get<Vector2<float>>(value);
 			SDL_Log("Mouse Position: {%f, %f}", mousePosition.X, mousePosition.Y);
 		};
 
@@ -69,22 +62,27 @@ namespace Engine
 		// Camera Zoom.
 		Action zoomAction(Float, zoomBehaviour);
 		zoomAction.BindInput("Mouse Wheel Y");
-		// TODO: Delta time modifiers. Also, sensitivity? Scalar modifier?
-		//zoomAction.BindInput<DeadZoneModifier>(SDL_GameControllerGetStringForAxis(SDL_CONTROLLER_AXIS_RIGHTY));
-		zoomAction.BindInput<ScalarModifier>(SDL_GameControllerGetStringForAxis(SDL_CONTROLLER_AXIS_RIGHTY), true);
-		zoomAction.GetInput(SDL_GameControllerGetStringForAxis(SDL_CONTROLLER_AXIS_RIGHTY)).
-			AddModifier<DeadZoneModifier>();
-		zoomAction.BindInput<SwizzleModifier, ScalarModifier>(SDL_GetScancodeName(SDL_SCANCODE_UP), true);
-		zoomAction.BindInput<SwizzleModifier, NegateModifier, ScalarModifier>(SDL_GetScancodeName(SDL_SCANCODE_DOWN), true);
+		// Order is important with dead zone, it should go first so that it acts on the unaltered value.
+		// Really it should probably be altered to only react to the raw value.
+		zoomAction.BindInput<DeadZoneModifier, ScalarModifier>(SDL_GameControllerGetStringForAxis(SDL_CONTROLLER_AXIS_RIGHTY));
+		zoomAction.GetInput(SDL_GameControllerGetStringForAxis(SDL_CONTROLLER_AXIS_RIGHTY))
+			.AddModifier<DeltaTimeModifier>(deltaTime);
+		zoomAction.BindInput<SwizzleModifier, ScalarModifier>(SDL_GetScancodeName(SDL_SCANCODE_UP));
+		zoomAction.GetInput(SDL_GetScancodeName(SDL_SCANCODE_UP)).AddModifier<DeltaTimeModifier>(deltaTime);
+		zoomAction.BindInput<SwizzleModifier, NegateModifier, ScalarModifier>(
+			SDL_GetScancodeName(SDL_SCANCODE_DOWN));
+		zoomAction.GetInput(SDL_GetScancodeName(SDL_SCANCODE_DOWN)).AddModifier<DeltaTimeModifier>(deltaTime);
 		Actions.emplace_back(std::move(zoomAction));
 
 		// Camera Movement.
-		Action moveAction(Vector2Float, moveBehaviour, true); // This will get normalised so combining inputs won't make you faster.
+		Action moveAction(Vector2Float, moveBehaviour, true);
+		// This will get normalised so combining inputs won't make you faster.
 		moveAction.BindInput<SwizzleModifier, NegateModifier>(SDL_GetScancodeName(SDL_SCANCODE_W));
 		moveAction.BindInput<SwizzleModifier>(SDL_GetScancodeName(SDL_SCANCODE_S));
 		moveAction.BindInput(SDL_GetScancodeName(SDL_SCANCODE_D));
 		moveAction.BindInput<NegateModifier>(SDL_GetScancodeName(SDL_SCANCODE_A));
-		moveAction.BindInput<SwizzleModifier, DeadZoneModifier>(SDL_GameControllerGetStringForAxis(SDL_CONTROLLER_AXIS_LEFTY));
+		moveAction.BindInput<SwizzleModifier, DeadZoneModifier>(
+			SDL_GameControllerGetStringForAxis(SDL_CONTROLLER_AXIS_LEFTY));
 		moveAction.BindInput<DeadZoneModifier>(SDL_GameControllerGetStringForAxis(SDL_CONTROLLER_AXIS_LEFTX));
 		Actions.emplace_back(std::move(moveAction));
 
@@ -115,7 +113,7 @@ namespace Engine
 		SDL_Log("Destroying scene!");
 	}
 
-	void IsometricScene::Update(float deltaTime)
+	void IsometricScene::Update(const float& deltaTime)
 	{
 		BaseScene::Update(deltaTime);
 	}

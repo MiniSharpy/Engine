@@ -55,6 +55,10 @@ namespace Engine
 			static EntityMemoryPool pool(MAX_ENTITIES);
 			return pool;
 		}
+		~EntityMemoryPool()
+		{
+
+		}
 
 		size_t GetEntityAliveCount() const { return AliveCount; }
 

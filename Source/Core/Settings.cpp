@@ -17,7 +17,7 @@ namespace Engine
 		return TargetFrameRate;
 	}
 
-	double Settings::GetTargetFrameTime() const
+	float Settings::GetTargetFrameTime() const
 	{
 		return TargetFrameTime;
 	}

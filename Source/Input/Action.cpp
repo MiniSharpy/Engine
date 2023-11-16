@@ -6,7 +6,7 @@ namespace Engine
 	Action::Action(ActionType type, std::function<void(ActionValue)> boundFunction, bool cumulateInputs)
 		: Type(type), BoundFunction(std::move(boundFunction)), CumulateInputs(cumulateInputs) {}
 
-	void Action::Process(float deltaTime)
+	void Action::Process()
 	{
 		auto enabled = [](const Input& input) { return input.CurrentProcessState != Stop; };
 		auto conditions = [](const Input& input)
@@ -37,10 +37,10 @@ namespace Engine
 			ProcessTrigger(inputsToProcess);
 			break;
 		case Float:
-			ProcessFloat(inputsToProcess, deltaTime);
+			ProcessFloat(inputsToProcess);
 			break;
 		case Vector2Float:
-			ProcessVector(inputsToProcess, deltaTime);
+			ProcessVector(inputsToProcess);
 			break;
 		}
 	}
@@ -63,7 +63,7 @@ namespace Engine
 		}
 	}
 
-	void Action::ProcessFloat(auto inputsToProcess, float deltaTime)
+	void Action::ProcessFloat(auto inputsToProcess)
 	{
 		bool execute = false;
 		float finalValue = 0;
@@ -75,8 +75,6 @@ namespace Engine
 			{
 				(*modifier)(value);
 			}
-
-			value *= input.handleDeltaTime ? deltaTime : 1;
 
 			if (CumulateInputs)
 			{
@@ -99,7 +97,7 @@ namespace Engine
 		}
 	}
 
-	void Action::ProcessVector(auto inputsToProcess, float deltaTime)
+	void Action::ProcessVector(auto inputsToProcess)
 	{
 		// TODO: Bool for inputs accumulate or taking highest value.
 		// For something like moving then accumulate might work better as it ends up normalised anyway and it means
@@ -114,8 +112,6 @@ namespace Engine
 			{
 				(*modifier)(value);
 			}
-
-			value *= input.handleDeltaTime ? deltaTime : Vector2<float>::One();
 
 			if (CumulateInputs)
 			{

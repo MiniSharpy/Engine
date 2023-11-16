@@ -15,9 +15,11 @@ namespace Engine
 		Timer() : Start{ SDL_GetPerformanceCounter() } {}
 
 		/// <returns>Time in seconds.</returns>
-		double Time()
+		template <typename T>
+			requires std::floating_point<T>
+		T Time()
 		{
-			return double(SDL_GetPerformanceCounter() - Start) / SDL_GetPerformanceFrequency();
+			return static_cast<T>(SDL_GetPerformanceCounter() - Start) / static_cast<T>(SDL_GetPerformanceFrequency());
 		}
 
 		/// <summary>

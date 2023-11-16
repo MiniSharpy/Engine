@@ -13,7 +13,7 @@ namespace Engine
 	}
 
 	SceneManager::SceneManager() :
-		CurrentScene{ *ScenesByName.emplace("default", std::make_unique<IsometricScene>()).first->second }
+		CurrentScene{ nullptr }
 	{
 	}
 }

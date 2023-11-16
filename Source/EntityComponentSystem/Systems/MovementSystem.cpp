@@ -8,7 +8,7 @@ namespace Engine
 {
 	MovementSystem::MovementSystem(BaseScene& scene) : OwningScene(scene) { }
 
-	void MovementSystem::Update(float deltaTime)
+	void MovementSystem::Update(const float& deltaTime)
 	{
 		for (auto& entity : OwningScene.GetEntityManager().GetEntities())
 		{

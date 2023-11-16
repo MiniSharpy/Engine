@@ -19,6 +19,6 @@ namespace Engine
 		Game(const Game& other) = delete; // Copy Constructor
 		Game& operator=(const Game& other) = delete; // Copy Assignment
 
-		void Update(float deltaTime, Settings& settings, BaseScene& scene, Events& events);
+		void Update(const float& deltaTime, Settings& settings, BaseScene& scene, Events& events);
 	};
 }

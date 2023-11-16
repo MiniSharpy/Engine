@@ -72,7 +72,7 @@ namespace Engine
 		SDL_Quit();
 	}
 
-	void Game::Update(float deltaTime, Settings& settings, BaseScene& scene, Events& events)
+	void Game::Update(const float& deltaTime, Settings& settings, BaseScene& scene, Events& events)
 	{
 		// Start the Dear ImGui frame, this is needed to provide UI commands.
 		ImGui_ImplSDLRenderer_NewFrame();

@@ -73,6 +73,7 @@ set(ALL_FILES
     "Input/Modifiers/SwizzleModifier.h" 
     "Input/Modifiers/DeadZoneModifier.h" 
     "Input/Modifiers/ScalarModifier.h" 
+    "Input/Modifiers/DeltaTimeModifier.h" 
     "Input/Conditions/Condition.h" 
     "Input/Conditions/PressedCondition.h" 
     "Input/Conditions/ReleasedCondition.h" 

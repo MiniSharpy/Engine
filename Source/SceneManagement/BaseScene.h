@@ -22,7 +22,7 @@ namespace Engine
 		Entity MainCamera;
 		std::vector<Action> Actions;
 
-		BaseScene() : MainCamera{ ManagedEntityManager.AddEntity("Camera") }
+		BaseScene(const float& deltaTime) : MainCamera{ ManagedEntityManager.AddEntity("Camera") }
 		{
 			MainCamera.AddComponent<Position>();
 			MainCamera.AddComponent<Velocity>();
@@ -32,7 +32,7 @@ namespace Engine
 		}
 		virtual ~BaseScene() = default;
 
-		virtual void Update(float deltaTime) 
+		virtual void Update(const float& deltaTime) 
 		{
 			ManagedEntityManager.Update();
 

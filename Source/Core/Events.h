@@ -28,7 +28,7 @@ namespace Engine
 		Events(const Events& other) = delete; // Copy Constructor
 		Events& operator=(const Events& other) = delete; // Copy Assignment
 
-		bool Process(float deltaTime);
+		bool Process();
 		bool IsKeyDown(SDL_Scancode scancode) const;
 		bool IsKeyPressed(SDL_Scancode scancode) const;
 		bool IsLeftMouseButtonDown() const;

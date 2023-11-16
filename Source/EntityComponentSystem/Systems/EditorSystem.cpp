@@ -272,7 +272,7 @@ namespace Engine
 		return {};
 	}
 
-	void EditorSystem::Update(float deltaTime)
+	void EditorSystem::Update(const float& deltaTime)
 	{
 		// TODO: Hotkey to enable debug. Perhaps tilde?
 		MapSettings();

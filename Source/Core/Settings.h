@@ -22,7 +22,7 @@ namespace Engine
 		/// Get the target frame time.
 		/// </summary>
 		/// <returns>Milliseconds between frames.</returns>
-		double GetTargetFrameTime() const;
+		float GetTargetFrameTime() const;
 		/// <summary>
 		/// Sets FPS and updates _TargetFrameTime to match. 
 		/// If paramater provided is 0, frame rate is uncapped.
@@ -37,6 +37,6 @@ namespace Engine
 		/// <summary>
 		/// Target seconds between frames.
 		/// </summary>
-		double TargetFrameTime;
+		float TargetFrameTime;
 	};
 }

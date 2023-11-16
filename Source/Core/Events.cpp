@@ -56,7 +56,7 @@ namespace Engine
 	}
 
 
-	bool Events::Process(float deltaTime)
+	bool Events::Process()
 	{
 		// Update previous keyboard state.
 		std::copy(&KeyboardState[0], &KeyboardState[SDL_NUM_SCANCODES], PreviousKeyboardState);
@@ -183,7 +183,7 @@ namespace Engine
 
 		for (Action& action : SceneManager::Instance().GetCurrentScene().Actions)
 		{
-			action.Process(deltaTime);
+			action.Process();
 		}
 
 		return true;
