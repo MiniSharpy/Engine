@@ -8,16 +8,14 @@ namespace Engine
 	private:
 		const float& DeltaTime;
 	public:
-		DeltaTimeModifier(const float& deltaTime) : DeltaTime{ deltaTime }
-		{
-			
-		}
+		DeltaTimeModifier(const float& deltaTime) : DeltaTime{ deltaTime } {}
 
-		virtual void operator()(float& value)
+		void operator()(float& value) override
 		{
 			value *= DeltaTime;
 		}
-		virtual void operator()(Vector2<float>& value)
+
+		void operator()(Vector2<float>& value) override
 		{
 			value *= DeltaTime;
 		}

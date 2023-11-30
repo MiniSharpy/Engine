@@ -35,7 +35,6 @@ namespace Engine
 		{
 			constexpr float zoomStep = 10.f;
 			float zoom = std::get<float>(value) / zoomStep;
-
 			MainCamera.GetComponent<Zoom>().Value = std::clamp(MainCamera.GetComponent<Zoom>().Value + zoom, 0.5f, 2.f);
 		};
 

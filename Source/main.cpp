@@ -26,7 +26,7 @@ float FrameTimeManagement(Timer& frameTimer, float targetFrameTime)
 	if (frameTime < targetFrameTime) // If current frame is too fast...
 	{
 		// ... sleep less than needed to allow spinning for accuracy. A higher FPS will hit the thread harder.
-		int timeToWait = (static_cast<int>(targetFrameTime - frameTime) * 1000) - 1; // In milliseconds.
+		int timeToWait = static_cast<int>((targetFrameTime - frameTime) * 1000.f) - 1; // In milliseconds.
 		if (timeToWait > 0) // SDL_Delay requires an unsigned int, don't wont to overflow.
 		{
 			SDL_Delay(timeToWait); // TODO: Does VSync cause stutters with this?
