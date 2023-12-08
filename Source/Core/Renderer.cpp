@@ -11,8 +11,8 @@
 #include <format>
 #include <bit>
 #include <imgui.h>
-#include <imgui_impl_sdl.h>
-#include <imgui_impl_sdlrenderer.h>
+#include <imgui_impl_sdl2.h>
+#include <imgui_impl_sdlrenderer2.h>
 #include <SDL.h>
 #include <SDL_image.h>
 #include <SDL_ttf.h>
@@ -39,7 +39,7 @@ namespace Engine
 
 		// Setup Platform/Renderer backends.
 		ImGui_ImplSDL2_InitForSDLRenderer(window, ManagedRenderer);
-		ImGui_ImplSDLRenderer_Init(ManagedRenderer);
+		ImGui_ImplSDLRenderer2_Init(ManagedRenderer);
 
 		SDL_RendererInfo info;
 		SDL_GetRendererInfo(ManagedRenderer, &info);
@@ -54,7 +54,7 @@ namespace Engine
 		Textures.clear(); // Destroy textures before renderer to prevent dangling pointers in Texture instances.
 		SDL_Log("Destroying renderer and Dear ImGui links!");
 		SDL_DestroyRenderer(ManagedRenderer); // Destroying the renderer will also destroy associated textures.
-		ImGui_ImplSDLRenderer_Shutdown();
+		ImGui_ImplSDLRenderer2_Shutdown();
 		ImGui_ImplSDL2_Shutdown();
 	}
 
@@ -131,7 +131,7 @@ namespace Engine
 		// RenderText("OpenSans.ttf", "TEST!", { 0, 0 }, 1);
 
 		// Render GUI.
-		ImGui_ImplSDLRenderer_RenderDrawData(ImGui::GetDrawData());
+		ImGui_ImplSDLRenderer2_RenderDrawData(ImGui::GetDrawData());
 
 		// Update screen with new frame.
 		SDL_RenderPresent(ManagedRenderer);

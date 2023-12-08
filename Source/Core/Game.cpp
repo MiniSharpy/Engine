@@ -5,8 +5,8 @@
 #include "../SceneManagement/IGrid.h"
 #include "../SceneManagement/IsometricScene.h"
 #include <imgui.h>
-#include <imgui_impl_sdl.h>
-#include <imgui_impl_sdlrenderer.h>
+#include <imgui_impl_sdl2.h>
+#include <imgui_impl_sdlrenderer2.h>
 #include <SDL.h>
 #include <SDL_image.h>
 #include <SDL_ttf.h>
@@ -75,7 +75,7 @@ namespace Engine
 	void Game::Update(const float& deltaTime, Settings& settings, BaseScene& scene, Events& events)
 	{
 		// Start the Dear ImGui frame, this is needed to provide UI commands.
-		ImGui_ImplSDLRenderer_NewFrame();
+		ImGui_ImplSDLRenderer2_NewFrame();
 		ImGui_ImplSDL2_NewFrame();
 		ImGui::NewFrame();
 

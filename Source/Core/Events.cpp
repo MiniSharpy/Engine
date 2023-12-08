@@ -5,7 +5,7 @@
 #include "SceneManagement/SceneManager.h"
 #include <algorithm>
 #include <SDL.h>
-#include <imgui_impl_sdl.h>
+#include <imgui_impl_sdl2.h>
 #include "../Input/Input.h"
 
 namespace Engine

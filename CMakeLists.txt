@@ -6,12 +6,13 @@ cmake_minimum_required(VERSION 3.12)
 include(FetchContent)
 FetchContent_Declare(vcpkg
     GIT_REPOSITORY https://github.com/microsoft/vcpkg/
-    GIT_TAG 2022.09.27
+    GIT_TAG 2023.11.20
 )
 FetchContent_MakeAvailable(vcpkg)
 
 # NOTE: This must be defined before the first project call
-set(CMAKE_TOOLCHAIN_FILE "${vcpkg_SOURCE_DIR}/scripts/buildsystems/vcpkg.cmake" CACHE FILEPATH "")
+set(CMAKE_TOOLCHAIN_FILE "${CMAKE_CURRENT_SOURCE_DIR}/vcpkg/scripts/buildsystems/vcpkg.cmake"
+  CACHE STRING "Vcpkg toolchain file")
 
 project ("Engine")
 

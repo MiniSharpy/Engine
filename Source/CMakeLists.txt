@@ -86,7 +86,7 @@ add_custom_target(copy_assets COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE
 find_package(imgui CONFIG REQUIRED)
 find_package(SDL2 CONFIG REQUIRED)
 find_package(SDL2_ttf CONFIG REQUIRED)
-find_package(sdl2-image CONFIG REQUIRED)
+find_package(SDL2_image CONFIG REQUIRED)
 
 # Create project as static library to link against in testing.
 add_library(${PROJECT_NAME}_static STATIC ${ALL_FILES})
@@ -97,7 +97,7 @@ target_include_directories(${PROJECT_NAME}_static PRIVATE ${CMAKE_CURRENT_LIST_D
 
 # Linking against static library.
 target_link_libraries(${PROJECT_NAME}_static PRIVATE SDL2::SDL2 SDL2::SDL2main)
-target_link_libraries(${PROJECT_NAME}_static PRIVATE SDL2::SDL2_image)
+target_link_libraries(${PROJECT_NAME}_static PRIVATE $<IF:$<TARGET_EXISTS:SDL2_image::SDL2_image>,SDL2_image::SDL2_image,SDL2_image::SDL2_image-static>)
 target_link_libraries(${PROJECT_NAME}_static PRIVATE imgui::imgui)
 target_link_libraries(${PROJECT_NAME}_static PRIVATE $<IF:$<TARGET_EXISTS:SDL2_ttf::SDL2_ttf>,SDL2_ttf::SDL2_ttf,SDL2_ttf::SDL2_ttf-static>)
 
