@@ -11,7 +11,7 @@ FetchContent_Declare(vcpkg
 FetchContent_MakeAvailable(vcpkg)
 
 # NOTE: This must be defined before the first project call
-set(CMAKE_TOOLCHAIN_FILE "${CMAKE_CURRENT_SOURCE_DIR}/vcpkg/scripts/buildsystems/vcpkg.cmake"
+set(CMAKE_TOOLCHAIN_FILE "${vcpkg_SOURCE_DIR}/scripts/buildsystems/vcpkg.cmake"
   CACHE STRING "Vcpkg toolchain file")
 
 project ("Engine")
