@@ -1,12 +1,18 @@
 #pragma once
 #include "../Maths/Vector2.h"
-#include "InputMisc.h"
 #include "Input.h"
 #include <map>
 #include <variant>
 
 namespace Engine
 {
+	enum ActionType
+	{
+		Trigger,
+		Float,
+		Vector2Float
+	};
+
 	/// <summary>
 	///	A wrapper of some behaviour, e.g. entity movement, and the inputs that trigger it. The inputs are processed according
 	///	to their specific modifiers to create a seamless abstraction upon raw inputs between potentially different devices.

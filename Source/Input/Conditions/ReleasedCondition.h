@@ -1,5 +1,4 @@
 #pragma once
-#include "../InputMisc.h"
 #include "../Input.h"
 
 namespace Engine

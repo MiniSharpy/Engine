@@ -67,7 +67,7 @@ set(ALL_FILES
     "Input/Action.cpp" 
     "Input/Input.h" 
       
-    "Input/InputMisc.h"
+    
     "Input/Modifiers/Modifier.h"  
     "Input/Modifiers/NegateModifier.h" 
     "Input/Modifiers/SwizzleModifier.h" 
