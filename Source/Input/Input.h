@@ -7,8 +7,6 @@
 
 namespace Engine
 {
-	class Action;
-
 	using ActionValue = std::variant<std::monostate, float, Engine::Vector2<float>>;
 
 	enum ProcessState

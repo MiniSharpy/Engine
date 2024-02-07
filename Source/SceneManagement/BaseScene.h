@@ -4,7 +4,7 @@
 #include "../EntityComponentSystem/Entity.h"
 #include "../EntityComponentSystem/EntityManager.h"
 #include "../EntityComponentSystem/Systems/BaseSystem.h"
-#include "../Input/Action.h"
+#include "../Input/InputManager.h"
 #include <memory>
 
 
@@ -20,7 +20,7 @@ namespace Engine
 
 	public:
 		Entity MainCamera;
-		std::vector<Action> Actions;
+		InputManager Input;
 
 		BaseScene(const float& deltaTime) : MainCamera{ ManagedEntityManager.AddEntity("Camera") }
 		{

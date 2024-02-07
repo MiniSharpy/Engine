@@ -58,6 +58,8 @@ namespace Engine
 
 	bool Events::Process()
 	{
+		BaseScene& currentScene = SceneManager::Instance().GetCurrentScene();
+
 		// Update previous keyboard state.
 		std::copy(&KeyboardState[0], &KeyboardState[SDL_NUM_SCANCODES], PreviousKeyboardState);
 
@@ -89,35 +91,35 @@ namespace Engine
 				{
 					Renderer::Instance().SetVSync(1);
 				}
-				UpdateMappedInputs(SDL_GetScancodeName(event.key.keysym.scancode), Continuous);
+				currentScene.Input.UpdateMappedInputs(SDL_GetScancodeName(event.key.keysym.scancode), Continuous);
 				break;
 			}
 			case SDL_KEYUP:
-				UpdateMappedInputs(SDL_GetScancodeName(event.key.keysym.scancode), Release);
+				currentScene.Input.UpdateMappedInputs(SDL_GetScancodeName(event.key.keysym.scancode), Release);
 				break;
 			case SDL_MOUSEMOTION:
 				MousePosition.X = event.motion.x;
 				MousePosition.Y = event.motion.y;
-				UpdateMappedInputs("Mouse Axis X", Once, (float)event.motion.xrel);
-				UpdateMappedInputs("Mouse Axis Y", Once, (float)event.motion.yrel);
+				currentScene.Input.UpdateMappedInputs("Mouse Axis X", Once, (float)event.motion.xrel);
+				currentScene.Input.UpdateMappedInputs("Mouse Axis Y", Once, (float)event.motion.yrel);
 				break;
 			case SDL_MOUSEBUTTONDOWN:
 				MouseButtonBitField |= SDL_BUTTON(event.button.button);
-				UpdateMappedInputs(
+				currentScene.Input.UpdateMappedInputs(
 					GetMouseButtonName(event.button.button),
 					Continuous,
 					Vector2<float>(event.button.x, event.button.y));
 				break;
 			case SDL_MOUSEBUTTONUP:
 				MouseButtonBitField &= ~SDL_BUTTON(event.button.button);
-				UpdateMappedInputs(
+				currentScene.Input.UpdateMappedInputs(
 					GetMouseButtonName(event.button.button),
 					Release,
 					Vector2<float>(event.button.x, event.button.y));
 				break;
 			case SDL_MOUSEWHEEL:
 				MouseWheelY = event.wheel.y;
-				UpdateMappedInputs("Mouse Wheel Y", Once, event.wheel.preciseY);
+				currentScene.Input.UpdateMappedInputs("Mouse Wheel Y", Once, event.wheel.preciseY);
 				break;
 			case SDL_CONTROLLERDEVICEADDED:
 				// This seems to handle initial start up, meaning no need to manually iterate over IDs in constructor.
@@ -144,7 +146,7 @@ namespace Engine
 				{
 					if (event.cbutton.which == GetControllerJoystickInstanceID(controller))
 					{
-						UpdateMappedInputs(
+						currentScene.Input.UpdateMappedInputs(
 							SDL_GameControllerGetStringForButton((SDL_GameControllerButton)event.cbutton.button),
 							Continuous);
 					}
@@ -155,7 +157,7 @@ namespace Engine
 				{
 					if (event.cbutton.which == GetControllerJoystickInstanceID(controller))
 					{
-						UpdateMappedInputs(
+						currentScene.Input.UpdateMappedInputs(
 							SDL_GameControllerGetStringForButton((SDL_GameControllerButton)event.cbutton.button),
 							Release);
 					}
@@ -170,7 +172,7 @@ namespace Engine
 						float value = event.caxis.value < 0
 							? -static_cast<float>(event.caxis.value) / std::numeric_limits<Sint16>::min()
 							: static_cast<float>(event.caxis.value) / std::numeric_limits<Sint16>::max();
-						UpdateMappedInputs(
+						currentScene.Input.UpdateMappedInputs(
 							SDL_GameControllerGetStringForAxis(static_cast<SDL_GameControllerAxis>(event.caxis.axis)),
 							Continuous,
 							value);
@@ -181,10 +183,7 @@ namespace Engine
 			}
 		}
 
-		for (Action& action : SceneManager::Instance().GetCurrentScene().Actions)
-		{
-			action.Process();
-		}
+		currentScene.Input.Process();
 
 		return true;
 	}
@@ -222,80 +221,5 @@ namespace Engine
 	void Events::ResetStates()
 	{
 		MouseWheelY = 0;
-	}
-
-	void Events::UpdateMappedInputs(const std::string& name, const ProcessState processState)
-	{
-		std::vector<Action>& actions = SceneManager::Instance().GetCurrentScene().Actions;
-		for (auto& action : actions)
-		{
-			if (!action.HasInput(name)) { continue; }
-
-			Input& input = action.GetInput(name);
-			input.CurrentProcessState = processState;
-
-			switch (action.GetType())
-			{
-			case Trigger:
-				input.RawValue = std::monostate();
-				break;
-			case Float:
-				input.RawValue = 1.0f;
-				break;
-			case Vector2Float:
-				input.RawValue = Vector2<float>::Right();
-				break;
-			}
-		}
-	}
-
-	void Events::UpdateMappedInputs(const std::string& name, const ProcessState processState, float value)
-	{
-		std::vector<Action>& actions = SceneManager::Instance().GetCurrentScene().Actions;
-		for (auto& action : actions)
-		{
-			if (!action.HasInput(name)) { continue; }
-
-			Input& input = action.GetInput(name);
-			input.CurrentProcessState = processState;
-
-			switch (action.GetType())
-			{
-			case Trigger:
-				input.RawValue = std::monostate();
-				break;
-			case Float:
-				input.RawValue = value;
-				break;
-			case Vector2Float:
-				input.RawValue = Vector2<float>::Right() * value;
-				break;
-			}
-		}
-	}
-
-	void Events::UpdateMappedInputs(const std::string& name, const ProcessState processState, Vector2<float> value)
-	{
-		std::vector<Action>& actions = SceneManager::Instance().GetCurrentScene().Actions;
-		for (auto& action : actions)
-		{
-			if (!action.HasInput(name)) { continue; }
-
-			Input& input = action.GetInput(name);
-			input.CurrentProcessState = processState;
-
-			switch (action.GetType())
-			{
-			case Trigger:
-				input.RawValue = std::monostate();
-				break;
-			case Float:
-				input.RawValue = value.Length(); // TODO: Is this a reasonable expectation?
-				break;
-			case Vector2Float:
-				input.RawValue = value;
-				break;
-			}
-		}
 	}
 }

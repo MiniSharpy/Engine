@@ -1,12 +1,10 @@
 #include "Action.h"
-#include <SDL.h>
 #include <ranges>
+
 namespace Engine
 {
-	Action::Action(ActionType type, std::function<void(ActionValue)> boundFunction, bool cumulateInputs)
-		: Type(type), BoundFunction(std::move(boundFunction)), CumulateInputs(cumulateInputs) {}
-
-	void Action::Process()
+	template <typename ... T>
+	auto Action<T...>::FilterInputs()
 	{
 		auto enabled = [](const Input& input) { return input.CurrentProcessState != Stop; };
 		auto conditions = [](const Input& input)
@@ -21,34 +19,21 @@ namespace Engine
 			return true;
 		};
 
-		// This is lazily evaluated and the modifiers alter their own state, so it must not be handled until
-		// the for each loop otherwise a condition could change. E.G. PressedCondition will set its previous
-		// process state which if called multiple times will result in it treating an input as a hold when
-		// it's actually only been pressed.
-		auto inputsToProcess =
-			BoundInputs
+		// This is lazily evaluated and the modifiers alter their own state, so it must not be accessed until
+		// each element is acted upon otherwise a condition could change.
+		// E.G. PressedCondition will set its previous process state which if called multiple times will
+		// result in it treating an input as a hold when it's actually only been pressed.
+		return BoundInputs
 			| std::views::values
 			| std::views::filter(enabled)
 			| std::views::filter(conditions);
-
-		switch (Type)
-		{
-		case Trigger:
-			ProcessTrigger(inputsToProcess);
-			break;
-		case Float:
-			ProcessFloat(inputsToProcess);
-			break;
-		case Vector2Float:
-			ProcessVector(inputsToProcess);
-			break;
-		}
 	}
 
-	void Action::ProcessTrigger(auto inputsToProcess)
+	template <>
+	void Action<>::Process()
 	{
 		bool execute = false;
-		for (auto& input : inputsToProcess)
+		for (auto& input : FilterInputs())
 		{
 			execute = true;
 			if (input.CurrentProcessState != Continuous)
@@ -59,15 +44,16 @@ namespace Engine
 
 		if (execute)
 		{
-			BoundFunction(std::monostate());
+			BoundFunction();
 		}
 	}
 
-	void Action::ProcessFloat(auto inputsToProcess)
+	template <>
+	void Action<float>::Process()
 	{
 		bool execute = false;
 		float finalValue = 0;
-		for (Input& input : inputsToProcess)
+		for (Input& input : FilterInputs())
 		{
 			execute = true;
 			float value = std::get<float>(input.RawValue);
@@ -84,7 +70,7 @@ namespace Engine
 			{
 				finalValue = abs(value) > abs(finalValue) ? value : finalValue;
 			}
-			
+
 			if (input.CurrentProcessState != Continuous)
 			{
 				input.CurrentProcessState = Stop;
@@ -97,14 +83,12 @@ namespace Engine
 		}
 	}
 
-	void Action::ProcessVector(auto inputsToProcess)
+	template <>
+	void Action<Vector2<float>>::Process()
 	{
-		// TODO: Bool for inputs accumulate or taking highest value.
-		// For something like moving then accumulate might work better as it ends up normalised anyway and it means
-		// that up/down, etc. movement can cancel itself out.
 		bool execute = false;
 		Vector2<float> finalValue = Vector2<float>::Zero();
-		for (Input& input : inputsToProcess)
+		for (Input& input : FilterInputs())
 		{
 			execute = true;
 			Vector2<float> value = std::get<Vector2<float>>(input.RawValue);
@@ -135,9 +119,69 @@ namespace Engine
 		}
 	}
 
-	bool Action::HasInput(const std::string& string) const { return BoundInputs.contains(string); }
+	template <>
+	void Action<>::Update(const std::string& name, const ProcessState processState)
+	{
+		GetInput(name).CurrentProcessState = processState;
+	}
 
-	Input& Action::GetInput(const std::string& string) { return BoundInputs.find(string)->second; }
+	template <>
+	void Action<>::Update(const std::string& name, const ProcessState processState, float value)
+	{
+		Update(name, processState);
+	}
 
-	ActionType Action::GetType() const { return Type; }
+	template <>
+	void Action<>::Update(const std::string& name, const ProcessState processState, Vector2<float> value)
+	{
+		Update(name, processState);
+	}
+
+	template <>
+	void Action<float>::Update(const std::string& name, const ProcessState processState)
+	{
+		Input& input = GetInput(name);
+		input.CurrentProcessState = processState;
+		input.RawValue = 1.0f;
+	}
+
+	template <>
+	void Action<float>::Update(const std::string& name, const ProcessState processState, float value)
+	{
+		Input& input = GetInput(name);
+		input.CurrentProcessState = processState;
+		input.RawValue = value;
+	}
+
+	template <>
+	void Action<float>::Update(const std::string& name, const ProcessState processState, Vector2<float> value)
+	{
+		Input& input = GetInput(name);
+		input.CurrentProcessState = processState;
+		input.RawValue = value.Length();
+	}
+
+	template <>
+	void Action<Vector2<float>>::Update(const std::string& name, const ProcessState processState)
+	{
+		Input& input = GetInput(name);
+		input.CurrentProcessState = processState;
+		input.RawValue = Vector2<float>::Right();
+	}
+
+	template <>
+	void Action<Vector2<float>>::Update(const std::string& name, const ProcessState processState, float value)
+	{
+		Input& input = GetInput(name);
+		input.CurrentProcessState = processState;
+		input.RawValue = Vector2<float>::Right() * value;
+	}
+
+	template <>
+	void Action<Vector2<float>>::Update(const std::string& name, const ProcessState processState, Vector2<float> value)
+	{
+		Input& input = GetInput(name);
+		input.CurrentProcessState = processState;
+		input.RawValue = value;
+	}
 }

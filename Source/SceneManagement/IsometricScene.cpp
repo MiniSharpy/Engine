@@ -31,35 +31,33 @@ namespace Engine
 		Systems.emplace_back(std::make_unique<MovementSystem>(*this));
 
 		// Input Behaviour
-		auto zoomBehaviour = [this](ActionValue value)
+		std::function zoomBehaviour = [this](float value)
 		{
 			constexpr float zoomStep = 10.f;
-			float zoom = std::get<float>(value) / zoomStep;
+			float zoom = value / zoomStep;
 			MainCamera.GetComponent<Zoom>().Value = std::clamp(MainCamera.GetComponent<Zoom>().Value + zoom, 0.5f, 2.f);
 		};
 
-		auto moveBehaviour = [this](ActionValue value)
+		std::function moveBehaviour = [this](Vector2<float> value)
 		{
 			// No need to constrain value as direction gets normalised anyway.
 			Velocity& velocity = MainCamera.GetComponent<Velocity>();
-			velocity.Direction += std::get<Vector2<float>>(value);
+			velocity.Direction += value;
 		};
 
-		auto pressedBehaviour = [this](ActionValue value) { SDL_Log("Pressed!"); };
+		std::function pressedBehaviour = [this]{ SDL_Log("Pressed!"); };
+		std::function releaseBehaviour = [this]{ SDL_Log("Release!"); };
+		std::function tapBehaviour = [this]{ SDL_Log("Tap!"); };
 
-		auto releaseBehaviour = [this](ActionValue value) { SDL_Log("Release!"); };
-
-		auto tapBehaviour = [this](ActionValue value) { SDL_Log("Tap!"); };
-
-		auto mouseBehaviour = [this](ActionValue value)
+		std::function mouseBehaviour = [this](Vector2<float> value)
 		{
-			Vector2 mousePosition = std::get<Vector2<float>>(value);
+			Vector2 mousePosition = value;
 			SDL_Log("Mouse Position: {%f, %f}", mousePosition.X, mousePosition.Y);
 		};
 
 		// Input Binding
 		// Camera Zoom.
-		Action zoomAction(Float, zoomBehaviour);
+		Action<float>& zoomAction = Input.AddAction(zoomBehaviour);
 		zoomAction.BindInput("Mouse Wheel Y");
 		// Order is important with dead zone, it should go first so that it acts on the unaltered value.
 		// Really it should probably be altered to only react to the raw value.
@@ -71,11 +69,9 @@ namespace Engine
 		zoomAction.BindInput<SwizzleModifier, NegateModifier, ScalarModifier>(
 			SDL_GetScancodeName(SDL_SCANCODE_DOWN));
 		zoomAction.GetInput(SDL_GetScancodeName(SDL_SCANCODE_DOWN)).AddModifier<DeltaTimeModifier>(deltaTime);
-		Actions.emplace_back(std::move(zoomAction));
 
-		// Camera Movement.
-		Action moveAction(Vector2Float, moveBehaviour, true);
-		// This will get normalised so combining inputs won't make you faster.
+		// Camera Movement. This will get normalised so combining inputs won't make you faster.
+		Action<Vector2<float>>& moveAction = Input.AddAction(moveBehaviour, true);
 		moveAction.BindInput<SwizzleModifier, NegateModifier>(SDL_GetScancodeName(SDL_SCANCODE_W));
 		moveAction.BindInput<SwizzleModifier>(SDL_GetScancodeName(SDL_SCANCODE_S));
 		moveAction.BindInput(SDL_GetScancodeName(SDL_SCANCODE_D));
@@ -83,28 +79,23 @@ namespace Engine
 		moveAction.BindInput<SwizzleModifier, DeadZoneModifier>(
 			SDL_GameControllerGetStringForAxis(SDL_CONTROLLER_AXIS_LEFTY));
 		moveAction.BindInput<DeadZoneModifier>(SDL_GameControllerGetStringForAxis(SDL_CONTROLLER_AXIS_LEFTX));
-		Actions.emplace_back(std::move(moveAction));
 
 		// Condition Tests.
-		Action pressAction(Trigger, pressedBehaviour);
+		Action<>& pressAction = Input.AddAction(pressedBehaviour, true);
 		pressAction.BindInput(SDL_GetScancodeName(SDL_SCANCODE_SPACE));
 		pressAction.GetInput(SDL_GetScancodeName(SDL_SCANCODE_SPACE)).AddCondition<PressedCondition>();
-		Actions.emplace_back(std::move(pressAction));
 
-		Action releaseAction(Trigger, releaseBehaviour);
+		Action<>& releaseAction = Input.AddAction(releaseBehaviour, true);
 		releaseAction.BindInput(SDL_GetScancodeName(SDL_SCANCODE_SPACE));
 		releaseAction.GetInput(SDL_GetScancodeName(SDL_SCANCODE_SPACE)).AddCondition<ReleasedCondition>();
-		Actions.emplace_back(std::move(releaseAction));
 
-		Action tapAction(Trigger, tapBehaviour);
+		Action<>& tapAction = Input.AddAction(tapBehaviour, true);
 		tapAction.BindInput(SDL_GetScancodeName(SDL_SCANCODE_SPACE));
 		tapAction.GetInput(SDL_GetScancodeName(SDL_SCANCODE_SPACE)).AddCondition<TapCondition>();
-		Actions.emplace_back(std::move(tapAction));
 
-		Action mouseAction(Vector2Float, mouseBehaviour);
+		Action<Vector2<float>>& mouseAction = Input.AddAction(mouseBehaviour, true);
 		mouseAction.BindInput("Mouse Button Left");
 		mouseAction.GetInput("Mouse Button Left").AddCondition<PressedCondition>();
-		Actions.emplace_back(std::move(mouseAction));
 	}
 
 	IsometricScene::~IsometricScene()

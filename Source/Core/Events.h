@@ -49,26 +49,5 @@ namespace Engine
 		int MouseWheelY = 0;
 		std::vector<SDL_GameController*> Controllers;
 		Vector2<int> WindowSize; // TODO: This should probably be on the window.
-
-		/// <summary>
-		/// Update input mapping if one exists, with new values when triggered.
-		/// </summary>
-		/// <param name="name">The name of the input.</param>
-		/// <param name="processState">The state of the Input object, e.g. process once, continuously, release.</param>
-		static void UpdateMappedInputs(const std::string& name, ProcessState processState);
-		/// <summary>
-		/// Update input mapping if one exists, with new values when triggered.
-		/// </summary>
-		/// <param name="name">The name of the input.</param>
-		/// <param name="processState">The state of the Input object, e.g. process once, continuously, release.</param>
-		/// <param name="value">The value of the the raw input. Converted depending on action type.</param>
-		static void UpdateMappedInputs(const std::string& name, ProcessState processState, float value);
-		/// <summary>
-		/// Update input mapping if one exists, with new values when triggered.
-		/// </summary>
-		/// <param name="name">The name of the input.</param>
-		/// <param name="processState">The state of the Input object, e.g. process once, continuously, release.</param>
-		/// <param name="value">The value of the the raw input. Converted depending on action type.</param>
-		static void UpdateMappedInputs(const std::string& name, ProcessState processState, Vector2<float> value);
 	};
 }
