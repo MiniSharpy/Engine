@@ -2,7 +2,7 @@
 
 namespace Engine
 {
-	class Input;
+	class RawInput;
 
 	/// <summary>
 	/// Polymorphic functor that that tests an input for specific conditions.
@@ -12,7 +12,7 @@ namespace Engine
 	{
 	public:
 		virtual ~Condition() = default;
-		virtual bool operator()(const Input& input) = 0;
+		virtual bool operator()(const RawInput& input) = 0;
 	};
 
 

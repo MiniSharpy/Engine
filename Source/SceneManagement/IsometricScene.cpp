@@ -57,7 +57,7 @@ namespace Engine
 
 		// Input Binding
 		// Camera Zoom.
-		Action<float>& zoomAction = Input.AddAction(zoomBehaviour);
+		Action<float>& zoomAction = InputManager.AddAction(zoomBehaviour);
 		zoomAction.BindInput("Mouse Wheel Y");
 		// Order is important with dead zone, it should go first so that it acts on the unaltered value.
 		// Really it should probably be altered to only react to the raw value.
@@ -71,7 +71,7 @@ namespace Engine
 		zoomAction.GetInput(SDL_GetScancodeName(SDL_SCANCODE_DOWN)).AddModifier<DeltaTimeModifier>(deltaTime);
 
 		// Camera Movement. This will get normalised so combining inputs won't make you faster.
-		Action<Vector2<float>>& moveAction = Input.AddAction(moveBehaviour, true);
+		Action<Vector2<float>>& moveAction = InputManager.AddAction(moveBehaviour, true);
 		moveAction.BindInput<SwizzleModifier, NegateModifier>(SDL_GetScancodeName(SDL_SCANCODE_W));
 		moveAction.BindInput<SwizzleModifier>(SDL_GetScancodeName(SDL_SCANCODE_S));
 		moveAction.BindInput(SDL_GetScancodeName(SDL_SCANCODE_D));
@@ -81,19 +81,19 @@ namespace Engine
 		moveAction.BindInput<DeadZoneModifier>(SDL_GameControllerGetStringForAxis(SDL_CONTROLLER_AXIS_LEFTX));
 
 		// Condition Tests.
-		Action<>& pressAction = Input.AddAction(pressedBehaviour, true);
+		Action<>& pressAction = InputManager.AddAction(pressedBehaviour, true);
 		pressAction.BindInput(SDL_GetScancodeName(SDL_SCANCODE_SPACE));
 		pressAction.GetInput(SDL_GetScancodeName(SDL_SCANCODE_SPACE)).AddCondition<PressedCondition>();
 
-		Action<>& releaseAction = Input.AddAction(releaseBehaviour, true);
+		Action<>& releaseAction = InputManager.AddAction(releaseBehaviour, true);
 		releaseAction.BindInput(SDL_GetScancodeName(SDL_SCANCODE_SPACE));
 		releaseAction.GetInput(SDL_GetScancodeName(SDL_SCANCODE_SPACE)).AddCondition<ReleasedCondition>();
 
-		Action<>& tapAction = Input.AddAction(tapBehaviour, true);
+		Action<>& tapAction = InputManager.AddAction(tapBehaviour, true);
 		tapAction.BindInput(SDL_GetScancodeName(SDL_SCANCODE_SPACE));
 		tapAction.GetInput(SDL_GetScancodeName(SDL_SCANCODE_SPACE)).AddCondition<TapCondition>();
 
-		Action<Vector2<float>>& mouseAction = Input.AddAction(mouseBehaviour, true);
+		Action<Vector2<float>>& mouseAction = InputManager.AddAction(mouseBehaviour, true);
 		mouseAction.BindInput("Mouse Button Left");
 		mouseAction.GetInput("Mouse Button Left").AddCondition<PressedCondition>();
 	}

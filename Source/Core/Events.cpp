@@ -6,7 +6,7 @@
 #include <algorithm>
 #include <SDL.h>
 #include <imgui_impl_sdl2.h>
-#include "../Input/Input.h"
+#include "../Input/RawInput.h"
 
 namespace Engine
 {
@@ -91,35 +91,35 @@ namespace Engine
 				{
 					Renderer::Instance().SetVSync(1);
 				}
-				currentScene.Input.UpdateMappedInputs(SDL_GetScancodeName(event.key.keysym.scancode), Continuous);
+				currentScene.InputManager.UpdateMappedInputs(SDL_GetScancodeName(event.key.keysym.scancode), Continuous);
 				break;
 			}
 			case SDL_KEYUP:
-				currentScene.Input.UpdateMappedInputs(SDL_GetScancodeName(event.key.keysym.scancode), Release);
+				currentScene.InputManager.UpdateMappedInputs(SDL_GetScancodeName(event.key.keysym.scancode), Release);
 				break;
 			case SDL_MOUSEMOTION:
 				MousePosition.X = event.motion.x;
 				MousePosition.Y = event.motion.y;
-				currentScene.Input.UpdateMappedInputs("Mouse Axis X", Once, (float)event.motion.xrel);
-				currentScene.Input.UpdateMappedInputs("Mouse Axis Y", Once, (float)event.motion.yrel);
+				currentScene.InputManager.UpdateMappedInputs("Mouse Axis X", Once, (float)event.motion.xrel);
+				currentScene.InputManager.UpdateMappedInputs("Mouse Axis Y", Once, (float)event.motion.yrel);
 				break;
 			case SDL_MOUSEBUTTONDOWN:
 				MouseButtonBitField |= SDL_BUTTON(event.button.button);
-				currentScene.Input.UpdateMappedInputs(
+				currentScene.InputManager.UpdateMappedInputs(
 					GetMouseButtonName(event.button.button),
 					Continuous,
 					Vector2<float>(event.button.x, event.button.y));
 				break;
 			case SDL_MOUSEBUTTONUP:
 				MouseButtonBitField &= ~SDL_BUTTON(event.button.button);
-				currentScene.Input.UpdateMappedInputs(
+				currentScene.InputManager.UpdateMappedInputs(
 					GetMouseButtonName(event.button.button),
 					Release,
 					Vector2<float>(event.button.x, event.button.y));
 				break;
 			case SDL_MOUSEWHEEL:
 				MouseWheelY = event.wheel.y;
-				currentScene.Input.UpdateMappedInputs("Mouse Wheel Y", Once, event.wheel.preciseY);
+				currentScene.InputManager.UpdateMappedInputs("Mouse Wheel Y", Once, event.wheel.preciseY);
 				break;
 			case SDL_CONTROLLERDEVICEADDED:
 				// This seems to handle initial start up, meaning no need to manually iterate over IDs in constructor.
@@ -146,7 +146,7 @@ namespace Engine
 				{
 					if (event.cbutton.which == GetControllerJoystickInstanceID(controller))
 					{
-						currentScene.Input.UpdateMappedInputs(
+						currentScene.InputManager.UpdateMappedInputs(
 							SDL_GameControllerGetStringForButton((SDL_GameControllerButton)event.cbutton.button),
 							Continuous);
 					}
@@ -157,7 +157,7 @@ namespace Engine
 				{
 					if (event.cbutton.which == GetControllerJoystickInstanceID(controller))
 					{
-						currentScene.Input.UpdateMappedInputs(
+						currentScene.InputManager.UpdateMappedInputs(
 							SDL_GameControllerGetStringForButton((SDL_GameControllerButton)event.cbutton.button),
 							Release);
 					}
@@ -172,7 +172,7 @@ namespace Engine
 						float value = event.caxis.value < 0
 							? -static_cast<float>(event.caxis.value) / std::numeric_limits<Sint16>::min()
 							: static_cast<float>(event.caxis.value) / std::numeric_limits<Sint16>::max();
-						currentScene.Input.UpdateMappedInputs(
+						currentScene.InputManager.UpdateMappedInputs(
 							SDL_GameControllerGetStringForAxis(static_cast<SDL_GameControllerAxis>(event.caxis.axis)),
 							Continuous,
 							value);
@@ -183,7 +183,7 @@ namespace Engine
 			}
 		}
 
-		currentScene.Input.Process();
+		currentScene.InputManager.Process();
 
 		return true;
 	}

@@ -1,6 +1,6 @@
 #pragma once
 #include "../Maths/Vector2.h"
-#include "Input.h"
+#include "RawInput.h"
 #include <map>
 #include <variant>
 #include <ranges>
@@ -19,7 +19,7 @@ namespace Engine
 		virtual void Update(const std::string& name, const ProcessState processState, Vector2<float> value) = 0;
 
 		virtual bool HasInput(const std::string& string) const = 0;
-		virtual Input& GetInput(const std::string& string) = 0;
+		virtual RawInput& GetInput(const std::string& string) = 0;
 	};
 
 	/// <summary>
@@ -39,7 +39,7 @@ namespace Engine
 		/// <summary>
 		/// A mapping from the name of an input to the input object itself. 
 		/// </summary>
-		std::map<std::string, Input> BoundInputs;
+		std::map<std::string, RawInput> BoundInputs;
 
 		/// <summary>
 		/// Determines how inputs are combined for this action.
@@ -85,7 +85,7 @@ namespace Engine
 		void Update(const std::string& name, const ProcessState processState, Vector2<float> value) override;
 
 		bool HasInput(const std::string& string) const override { return BoundInputs.contains(string); }
-		Input& GetInput(const std::string& string) override { return BoundInputs.find(string)->second; }
+		RawInput& GetInput(const std::string& string) override { return BoundInputs.find(string)->second; }
 
 		/// <summary>
 		/// Creates and bind an input object, given its name, and modifiers, to the action.
@@ -95,7 +95,7 @@ namespace Engine
 		template<typename ...Modifiers>
 		void BindInput(const std::string& inputName)
 		{
-			Input input;
+			RawInput input;
 			(input.Modifiers.emplace_back(std::make_unique<Modifiers>()), ...);
 
 			BoundInputs.emplace(inputName, std::move(input));

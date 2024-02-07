@@ -6,8 +6,8 @@ namespace Engine
 	template <typename ... T>
 	auto Action<T...>::FilterInputs()
 	{
-		auto enabled = [](const Input& input) { return input.CurrentProcessState != Stop; };
-		auto conditions = [](const Input& input)
+		auto enabled = [](const RawInput& input) { return input.CurrentProcessState != Stop; };
+		auto conditions = [](const RawInput& input)
 		{
 			for (auto&& condition : input.Conditions)
 			{
@@ -53,7 +53,7 @@ namespace Engine
 	{
 		bool execute = false;
 		float finalValue = 0;
-		for (Input& input : FilterInputs())
+		for (RawInput& input : FilterInputs())
 		{
 			execute = true;
 			float value = std::get<float>(input.RawValue);
@@ -88,7 +88,7 @@ namespace Engine
 	{
 		bool execute = false;
 		Vector2<float> finalValue = Vector2<float>::Zero();
-		for (Input& input : FilterInputs())
+		for (RawInput& input : FilterInputs())
 		{
 			execute = true;
 			Vector2<float> value = std::get<Vector2<float>>(input.RawValue);
@@ -140,7 +140,7 @@ namespace Engine
 	template <>
 	void Action<float>::Update(const std::string& name, const ProcessState processState)
 	{
-		Input& input = GetInput(name);
+		RawInput& input = GetInput(name);
 		input.CurrentProcessState = processState;
 		input.RawValue = 1.0f;
 	}
@@ -148,7 +148,7 @@ namespace Engine
 	template <>
 	void Action<float>::Update(const std::string& name, const ProcessState processState, float value)
 	{
-		Input& input = GetInput(name);
+		RawInput& input = GetInput(name);
 		input.CurrentProcessState = processState;
 		input.RawValue = value;
 	}
@@ -156,7 +156,7 @@ namespace Engine
 	template <>
 	void Action<float>::Update(const std::string& name, const ProcessState processState, Vector2<float> value)
 	{
-		Input& input = GetInput(name);
+		RawInput& input = GetInput(name);
 		input.CurrentProcessState = processState;
 		input.RawValue = value.Length();
 	}
@@ -164,7 +164,7 @@ namespace Engine
 	template <>
 	void Action<Vector2<float>>::Update(const std::string& name, const ProcessState processState)
 	{
-		Input& input = GetInput(name);
+		RawInput& input = GetInput(name);
 		input.CurrentProcessState = processState;
 		input.RawValue = Vector2<float>::Right();
 	}
@@ -172,7 +172,7 @@ namespace Engine
 	template <>
 	void Action<Vector2<float>>::Update(const std::string& name, const ProcessState processState, float value)
 	{
-		Input& input = GetInput(name);
+		RawInput& input = GetInput(name);
 		input.CurrentProcessState = processState;
 		input.RawValue = Vector2<float>::Right() * value;
 	}
@@ -180,7 +180,7 @@ namespace Engine
 	template <>
 	void Action<Vector2<float>>::Update(const std::string& name, const ProcessState processState, Vector2<float> value)
 	{
-		Input& input = GetInput(name);
+		RawInput& input = GetInput(name);
 		input.CurrentProcessState = processState;
 		input.RawValue = value;
 	}

@@ -16,7 +16,7 @@ namespace Engine
 		int MaxTimeBetweenPresses = 500;
 		int RequiredPresses = 2;
 
-		bool operator()(const Input& input) override
+		bool operator()(const RawInput& input) override
 		{
 			bool isHeld = input.CurrentProcessState == PreviousProcessState;
 			bool isPressed = !isHeld && input.CurrentProcessState != Release;

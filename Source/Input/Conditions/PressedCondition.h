@@ -1,5 +1,5 @@
 #pragma once
-#include "../Input.h"
+#include "../RawInput.h"
 
 namespace Engine
 {
@@ -8,7 +8,7 @@ namespace Engine
 	private:
 		ProcessState PreviousProcessState = Stop;
 	public:
-		bool operator()(const Input& input) override
+		bool operator()(const RawInput& input) override
 		{
 			bool isHeld = input.CurrentProcessState == PreviousProcessState;
 			bool isPressed = !isHeld && input.CurrentProcessState != Release;
