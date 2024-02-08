@@ -27,8 +27,9 @@ namespace Engine
 
 	public:
 		BaseScene& GetCurrentScene() const { return *CurrentScene; } // TODO: Handle undefined behaviour properly.
-		template<typename T> // TODO: Restrict to inherits from BaseClass
-		void LoadScene(float deltaTime)
+		template<typename T>
+			requires(std::is_base_of<BaseScene, T>::value) // Is this really neccesary if the emplaced type is a BaseScene?
+		void LoadScene(const float& deltaTime)
 		{
 			ScenesByName.emplace("default", std::make_unique<T>(deltaTime));
 			CurrentScene = ScenesByName["default"].get();

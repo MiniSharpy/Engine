@@ -5,7 +5,6 @@
 
 namespace Engine
 {
-
 	class Input
 	{
 	private:
@@ -15,7 +14,7 @@ namespace Engine
 
 		template<typename ...T>
 			requires (sizeof...(T) == 0 || 
-		(sizeof...(T) == 1 && (std::same_as<T..., float> || std::same_as<T..., Vector2<float>>)))
+		(sizeof...(T) == 1 && (std::same_as<float, T> || ...) || (std::same_as<Vector2<float>, T> || ...)))
 		Action<T...>& AddAction(std::function<void(T...)> function, bool cumulateInputs = false)
 		{
 			IAction* action = Actions.emplace_back(new Action(std::move(function), cumulateInputs)).get();

@@ -64,9 +64,9 @@ namespace Engine
 		zoomAction.BindInput<DeadZoneModifier, ScalarModifier>(SDL_GameControllerGetStringForAxis(SDL_CONTROLLER_AXIS_RIGHTY));
 		zoomAction.GetInput(SDL_GameControllerGetStringForAxis(SDL_CONTROLLER_AXIS_RIGHTY))
 			.AddModifier<DeltaTimeModifier>(deltaTime);
-		zoomAction.BindInput<SwizzleModifier, ScalarModifier>(SDL_GetScancodeName(SDL_SCANCODE_UP));
+		zoomAction.BindInput<ScalarModifier>(SDL_GetScancodeName(SDL_SCANCODE_UP));
 		zoomAction.GetInput(SDL_GetScancodeName(SDL_SCANCODE_UP)).AddModifier<DeltaTimeModifier>(deltaTime);
-		zoomAction.BindInput<SwizzleModifier, NegateModifier, ScalarModifier>(
+		zoomAction.BindInput<NegateModifier, ScalarModifier>(
 			SDL_GetScancodeName(SDL_SCANCODE_DOWN));
 		zoomAction.GetInput(SDL_GetScancodeName(SDL_SCANCODE_DOWN)).AddModifier<DeltaTimeModifier>(deltaTime);
 
