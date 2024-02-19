@@ -13,14 +13,16 @@ namespace Engine
 	{
 	}
 
-	std::vector<Vector2<int>> Engine::NavigationGraph::GetNeighbours(Vector2<int> centralNode)
+	std::vector<Vector2<int>> NavigationGraph::GetNeighbours(Vector2<int> centralNode) const
 	{
+		// Start by getting the adjacent nodes to the passed node.
 		std::vector adjacentNodes = Directions;
 		for (auto& position : adjacentNodes)
 		{
-			position = (Vector2<int>)Scene.GridToWorldSpace((Vector2<float>)position) + centralNode;
+			position = position + centralNode;
 		}
 
+		// Remove inaccessible nodes.
 		for (auto& entity : Scene.GetEntityManager().GetEntities())
 		{
 			if (!entity.HasComponents<Position, Collider, Sprite>()) { continue; } // Entities with a collider should have a position, but best check anyway.
@@ -32,6 +34,7 @@ namespace Engine
 			{
 				edge += entity.GetComponent<Position>();
 				edge -= entity.GetComponent<Sprite>().PivotOffset;
+				edge = Scene.ScreenSpaceToGrid(edge);
 			}
 
 			// For each adjacent node see if the connection intersects the entity's colliders.
@@ -45,7 +48,7 @@ namespace Engine
 						if (Collision::LineSegmentIntersection({ *it, *(it + 1) }, connection))
 						{
 							return true;
-						}
+		}
 					}
 				}
 
@@ -77,9 +80,9 @@ namespace Engine
 			const auto& neighbours = GetNeighbours(current);
 			for (auto& neighbour : neighbours)
 			{
-				Edge<float> edge((Vector2<float>)current, (Vector2<float>)neighbour);
+				Edge<float> edge(static_cast<Vector2<float>>(current), static_cast<Vector2<float>>(neighbour));
 				// If the connection hasn't already been added..
-				if (std::find(Connections.begin(), Connections.end(), edge) == Connections.end())
+				if (std::ranges::find(Connections, edge) == Connections.end())
 				{
 					frontier.push(neighbour);
 					Connections.push_back(edge);
@@ -93,24 +96,30 @@ namespace Engine
 		return Connections;
 	}
 
-	std::unordered_map<Vector2<int>, Vector2<int>> NavigationGraph::BreadthFirstSearch(Vector2<int> start)
+	std::unordered_map<Vector2<int>, Vector2<int>> NavigationGraph::BreadthFirstSearch(
+		Vector2<int> start, std::optional<Vector2<int>> goal) const
 	{
 		// https://www.redblobgames.com/pathfinding/a-star/introduction.html
-		std::queue frontier = std::queue<Vector2<int>>();
+		std::queue<Vector2<int>> frontier;
 		frontier.emplace(start);
-		std::unordered_map cameFrom = std::unordered_map<Vector2<int>, Vector2<int>>();
+		std::unordered_map<Vector2<int>, Vector2<int>> cameFrom;
+		cameFrom[start] = start; // Don't want start to be added as a neighbour of another node.
 
 
 		while (!frontier.empty())
 		{
-			Vector2<int> current = frontier.front();
+			const Vector2<int> current = frontier.front();
 			frontier.pop();
 
+			if (current == goal) { break; }
+
+			// Create a mapping from the current node to the neighbouring nodes if hasn't been found before,
+			// storing frontier nodes for later exploration.
 			const auto& neighbours = GetNeighbours(current);
 			for (auto& neighbour : neighbours)
 			{
 				// If neighbour hasn't already been reached.
-				if (cameFrom.count(neighbour) == 0)
+				if (!cameFrom.contains(neighbour))
 				{
 					frontier.push(neighbour);
 					cameFrom[neighbour] = current;
@@ -118,11 +127,23 @@ namespace Engine
 			}
 		}
 
-		// Start shouldn't be reachable from anywhere, but because it's not set to anything in the map it means when
-		// the first node that is reached from start begins to explore it'll "find" start and add it to the map, 
-		// necessitating its removal.
-		cameFrom.erase(start);
-
 		return cameFrom;
+	}
+
+	std::vector<Vector2<int>> NavigationGraph::ConstructPath(
+		const std::unordered_map<Vector2<int>, Vector2<int>>& cameFrom, Vector2<int> start, Vector2<int> goal)
+	{
+		Vector2<int> current = goal;
+
+		std::vector<Vector2<int>> path;
+		while (current != start)
+		{
+			path.push_back(current);
+			current = cameFrom.at(current); // TODO: Handle possible thrown exception.
+		}
+		path.push_back(start);
+		std::ranges::reverse(path);
+
+		return path;
 	}
 }

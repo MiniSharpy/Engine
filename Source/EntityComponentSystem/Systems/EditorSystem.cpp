@@ -231,6 +231,27 @@ namespace Engine
 			ImGui::GetWindowDrawList()->AddLine(point0, point1, IM_COL32(0, 0, 255, 255), 2);
 		}
 
+
+		// Draw path to mouse.
+		if (ImGui::IsMouseClicked(ImGuiMouseButton_Left))
+		{
+			if (!CurrentTileAtlas) { ImGui::End(); return; } // TODO: Hacky fix just to test,
+
+			const Vector2<int> start = {0, 0};
+			const Vector2<int> mousePosition = static_cast<Vector2<int>>(OwningScene.ScreenSpaceToGrid(ImGui::GetMousePos()));
+			auto cameFrom = OwningScene.ManagedNavigationGraph.BreadthFirstSearch(start, mousePosition);
+			auto path = NavigationGraph::ConstructPath(cameFrom, start, mousePosition);
+
+			for (int i = 1; i < path.size(); ++i)
+			{
+				// Offset to get centre of grid.
+				Vector2<float> offset = { 0, CurrentTileAtlas->GetTileSize().Y / 4.f };
+				Vector2<float> point0 = OwningScene.WorldSpaceToRenderSpace(OwningScene.GridToWorldSpace(static_cast<Vector2<float>>(path[i - 1])));
+				Vector2<float> point1 = OwningScene.WorldSpaceToRenderSpace(OwningScene.GridToWorldSpace(static_cast<Vector2<float>>(path[i])));
+				ImGui::GetWindowDrawList()->AddLine(point0 + offset, point1 + offset, IM_COL32(0, 0, 255, 255), 2);
+			}
+		}
+
 		ImGui::End();
 	}
 
