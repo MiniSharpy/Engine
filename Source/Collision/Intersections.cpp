@@ -28,9 +28,9 @@ namespace Engine
 		rectangleB.Position = rectangleB.Centre();
 
 		// Absolute means the position of each rectangle relative to each other doesn't matter.
-		float dx = abs(rectangleA.Position.X - rectangleB.Position.X);
+		float dx = std::abs(rectangleA.Position.X - rectangleB.Position.X);
 		float overlapX = (rectangleA.Size.X / 2) + (rectangleB.Size.X / 2) - dx;
-		float dy = abs(rectangleA.Position.Y - rectangleB.Position.Y);
+		float dy = std::abs(rectangleA.Position.Y - rectangleB.Position.Y);
 		float overlapY = (rectangleA.Size.Y / 2) + (rectangleB.Size.Y / 2) - dy;
 
 		if (overlapX > 0 && overlapY > 0)

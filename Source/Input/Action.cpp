@@ -68,7 +68,7 @@ namespace Engine
 			}
 			else
 			{
-				finalValue = abs(value) > abs(finalValue) ? value : finalValue;
+				finalValue = std::abs(value) > std::abs(finalValue) ? value : finalValue;
 			}
 
 			if (input.CurrentProcessState != Continuous)
@@ -103,8 +103,8 @@ namespace Engine
 			}
 			else
 			{
-				finalValue.X = abs(value.X) > abs(finalValue.X) ? value.X : finalValue.X;
-				finalValue.Y = abs(value.Y) > abs(finalValue.Y) ? value.Y : finalValue.Y;
+				finalValue.X = std::abs(value.X) > std::abs(finalValue.X) ? value.X : finalValue.X;
+				finalValue.Y = std::abs(value.Y) > std::abs(finalValue.Y) ? value.Y : finalValue.Y;
 			}
 
 			if (input.CurrentProcessState != Continuous)
