@@ -19,7 +19,7 @@ namespace Engine
 		std::vector adjacentNodes = Directions;
 		for (auto& position : adjacentNodes)
 		{
-			position = position + centralNode;
+			position = (Vector2<int>)Scene.GridToWorldSpace((Vector2<float>)position) + centralNode;
 		}
 
 		// Remove inaccessible nodes.
@@ -34,7 +34,6 @@ namespace Engine
 			{
 				edge += entity.GetComponent<Position>();
 				edge -= entity.GetComponent<Sprite>().PivotOffset;
-				edge = Scene.ScreenSpaceToGrid(edge);
 			}
 
 			// For each adjacent node see if the connection intersects the entity's colliders.
@@ -111,7 +110,14 @@ namespace Engine
 			const Vector2<int> current = frontier.front();
 			frontier.pop();
 
-			if (current == goal) { break; }
+			if (current == goal)
+			{
+				break;
+			}
+			if (cameFrom.size() > 1000)
+			{
+				return {};
+			}
 
 			// Create a mapping from the current node to the neighbouring nodes if hasn't been found before,
 			// storing frontier nodes for later exploration.
@@ -139,7 +145,8 @@ namespace Engine
 		while (current != start)
 		{
 			path.push_back(current);
-			current = cameFrom.at(current); // TODO: Handle possible thrown exception.
+			if (!cameFrom.contains(current)) { return {}; }
+			current = cameFrom.at(current);
 		}
 		path.push_back(start);
 		std::ranges::reverse(path);

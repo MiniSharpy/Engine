@@ -233,21 +233,21 @@ namespace Engine
 
 
 		// Draw path to mouse.
-		if (ImGui::IsMouseClicked(ImGuiMouseButton_Left))
+		if (ImGui::IsKeyDown(ImGuiKey_LeftCtrl) && ImGui::IsMouseClicked(ImGuiMouseButton_Left))
 		{
 			if (!CurrentTileAtlas) { ImGui::End(); return; } // TODO: Hacky fix just to test,
 
-			const Vector2<int> start = {0, 0};
-			const Vector2<int> mousePosition = static_cast<Vector2<int>>(OwningScene.ScreenSpaceToGrid(ImGui::GetMousePos()));
+			const Vector2<int> start = { 0, CurrentTileAtlas->GetTileSize().Y / 4 };
+			const Vector2<int> mousePosition = static_cast<Vector2<int>>(OwningScene.GridToWorldSpace(OwningScene.ScreenSpaceToGrid(ImGui::GetMousePos()))) + start;
 			auto cameFrom = OwningScene.ManagedNavigationGraph.BreadthFirstSearch(start, mousePosition);
 			auto path = NavigationGraph::ConstructPath(cameFrom, start, mousePosition);
 
 			for (int i = 1; i < path.size(); ++i)
 			{
 				// Offset to get centre of grid.
-				Vector2<float> offset = { 0, CurrentTileAtlas->GetTileSize().Y / 4.f };
-				Vector2<float> point0 = OwningScene.WorldSpaceToRenderSpace(OwningScene.GridToWorldSpace(static_cast<Vector2<float>>(path[i - 1])));
-				Vector2<float> point1 = OwningScene.WorldSpaceToRenderSpace(OwningScene.GridToWorldSpace(static_cast<Vector2<float>>(path[i])));
+				Vector2<float> offset = { 0, 0 };
+				Vector2<float> point0 = OwningScene.WorldSpaceToRenderSpace(static_cast<Vector2<float>>(path[i - 1]));
+				Vector2<float> point1 = OwningScene.WorldSpaceToRenderSpace(static_cast<Vector2<float>>(path[i]));
 				ImGui::GetWindowDrawList()->AddLine(point0 + offset, point1 + offset, IM_COL32(0, 0, 255, 255), 2);
 			}
 		}
@@ -261,7 +261,7 @@ namespace Engine
 		EntityManager& entityManager = OwningScene.GetEntityManager();
 		if (ImGui::BeginTable("EntityTable", 2, ImGuiTableFlags_NoSavedSettings | ImGuiTableFlags_Borders))
 		{
-			for (auto entity : entityManager.GetEntities())
+			for (Entity entity : entityManager.GetEntities())
 			{
 				const bool isSelected = (SelectedEntityID == entity.GetID());
 				std::string label = std::format("Entity {}", entity.GetID());

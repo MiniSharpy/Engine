@@ -63,6 +63,7 @@ namespace Engine
 
 		/// <summary>
 		/// Converts world space coordinates (pixels) to render space coordinates (pixels), taking into account camera offset and zoom.
+		///	With no zoom this is equivalent to screen space.
 		/// </summary>
 		/// <remarks>
 		/// SDL has a function called SDL_RenderSetScale which would ordinarily negate accounting for zoom, however it #

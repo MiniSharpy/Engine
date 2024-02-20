@@ -37,6 +37,7 @@ namespace Engine
 		void SetTileSize(int width, int height);
 
 		Vector2<float> ScreenSpaceToGrid(Vector2<float> screen, bool floor = true) const override;
+		Vector2<float> WorldSpaceToGrid(Vector2<float> world, bool floor = true) const override;
 		Vector2<float> GridToWorldSpace(Vector2<float> grid) const override;
 	};
 }

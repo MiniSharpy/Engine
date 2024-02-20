@@ -267,8 +267,12 @@ namespace Engine
 	Vector2<float> IsometricScene::ScreenSpaceToGrid(Vector2<float> screen, bool floor) const
 	{
 		Vector2<float> world = ScreenSpaceToWorldSpace(screen); // So camera offset and zoom is taken into account.
+		return WorldSpaceToGrid(world, floor);
+	}
 
-		float tileHeight = (TileSize.Y / 2);
+	Vector2<float> IsometricScene::WorldSpaceToGrid(Vector2<float> world, bool floor) const
+	{
+		float tileHeight = (TileSize.Y / 2.f);
 		float tileWidth = TileSize.X;
 
 		Vector2<float> grid = Vector2<float>(
