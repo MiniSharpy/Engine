@@ -39,7 +39,7 @@ namespace Engine
 		template <typename U> // No need to specify requires again, can't construct a Vector2 of the disallowed types.
 		explicit Vector2(const Vector2<U>& right) : X{ (T)right.X }, Y{ (T)right.Y } {}
 
-		/* OPERATORS */
+		/* OPERATORS */ // TODO: Add, Subtract, Multiply Vector2 by any other Vector 2.
 		constexpr Vector2 operator+ (const T right) const { return { X + right, Y + right }; };
 		constexpr Vector2 operator+ (const Vector2& right) const { return { X + right.X, Y + right.Y }; };
 		constexpr Vector2& operator+= (const T right) { X += right; Y += right; return *this; };

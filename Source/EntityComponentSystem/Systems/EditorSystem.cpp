@@ -9,6 +9,7 @@
 #include "../../Maths/Vector2.h"
 #include "../../Collision/Intersections.h"
 #include "../../Editor/ComponentEditor.h"
+#include"../../Core/Timer.h"
 #include <imgui.h>
 #include <filesystem>
 #include <string>
@@ -190,13 +191,6 @@ namespace Engine
 
 	void EditorSystem::MapDebug()
 	{
-		ImGui::Begin("MapDebug", 0, ImGuiWindowFlags_AlwaysAutoResize);
-		if (ImGui::Button("GenerateConnections"))
-		{
-			OwningScene.ManagedNavigationGraph.CacheConnections({ 0, CurrentTileAtlas->GetTileSize().Y / 4 });
-		}
-		ImGui::End();
-
 		ImGui::SetNextWindowPos({ 0.f,0.f });
 		ImGui::SetNextWindowSize(ImGui::GetIO().DisplaySize);
 		ImGui::Begin("GridDrawing", 0,
@@ -222,33 +216,21 @@ namespace Engine
 			}
 		}
 
-		// Draw connections.
-		for (const auto& edge : OwningScene.ManagedNavigationGraph.GetConnections())
-		{
-			Vector2<float> point0 = OwningScene.WorldSpaceToRenderSpace(edge.first);
-			Vector2<float> point1 = OwningScene.WorldSpaceToRenderSpace(edge.second);
-
-			ImGui::GetWindowDrawList()->AddLine(point0, point1, IM_COL32(0, 0, 255, 255), 2);
-		}
-
-
 		// Draw path to mouse.
-		if (ImGui::IsKeyDown(ImGuiKey_LeftCtrl) && ImGui::IsMouseClicked(ImGuiMouseButton_Left))
+		//if (ImGui::IsKeyDown(ImGuiKey_LeftCtrl) && ImGui::IsMouseClicked(ImGuiMouseButton_Left))
 		{
-			if (!CurrentTileAtlas) { ImGui::End(); return; } // TODO: Hacky fix just to test,
-
-			const Vector2<int> start = { 0, CurrentTileAtlas->GetTileSize().Y / 4 };
+			// TODO: This is quite awkward because the start and goal need to be a particular distance apart for the neighbour checking.
+			// It might make more sense to use the grid position, but that'll need conversion inside the function to handle collisions.
+			const Vector2<int> start = { 0, OwningScene.TileSize.Y / 4 };
 			const Vector2<int> mousePosition = static_cast<Vector2<int>>(OwningScene.GridToWorldSpace(OwningScene.ScreenSpaceToGrid(ImGui::GetMousePos()))) + start;
-			auto cameFrom = OwningScene.ManagedNavigationGraph.BreadthFirstSearch(start, mousePosition);
+			auto cameFrom = OwningScene.ManagedNavigationGraph.AStar(start, mousePosition);
 			auto path = NavigationGraph::ConstructPath(cameFrom, start, mousePosition);
 
 			for (int i = 1; i < path.size(); ++i)
 			{
-				// Offset to get centre of grid.
-				Vector2<float> offset = { 0, 0 };
 				Vector2<float> point0 = OwningScene.WorldSpaceToRenderSpace(static_cast<Vector2<float>>(path[i - 1]));
 				Vector2<float> point1 = OwningScene.WorldSpaceToRenderSpace(static_cast<Vector2<float>>(path[i]));
-				ImGui::GetWindowDrawList()->AddLine(point0 + offset, point1 + offset, IM_COL32(0, 0, 255, 255), 2);
+				ImGui::GetWindowDrawList()->AddLine(point0, point1, IM_COL32(0, 0, 255, 255), 2);
 			}
 		}
 
