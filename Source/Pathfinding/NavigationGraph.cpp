@@ -47,7 +47,7 @@ namespace Engine
 			}
 
 			// For each adjacent node see if the connection intersects the entity's colliders.
-			const auto collidingStart = std::ranges::remove_if(adjacentNodes, [centralNode, &collisionNodes](const Vector2<int> adjacentNode)
+			std::erase_if(adjacentNodes, [centralNode, &collisionNodes](const Vector2<int> adjacentNode)
 			{
 				const Edge<float> pathEdge = { static_cast<Vector2<float>>(adjacentNode), static_cast<Vector2<float>>(centralNode) };
 				for (size_t i = 1; i < collisionNodes.size(); ++i)
@@ -60,9 +60,8 @@ namespace Engine
 				}
 
 				return false;
-			}).begin();
+			});
 
-			adjacentNodes.erase(collidingStart, adjacentNodes.end());
 			if (adjacentNodes.empty()) { return adjacentNodes; } // Early exit if all nodes have been erased.
 		}
 
