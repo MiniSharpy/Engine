@@ -1,6 +1,7 @@
 #pragma once
 #include "../Core/Events.h"
-#include"../Maths/Vector2.h"
+#include "../Core/Renderer.h"
+#include "../Maths/Vector2.h"
 #include "../EntityComponentSystem/Entity.h"
 #include "../EntityComponentSystem/EntityManager.h"
 #include "../EntityComponentSystem/Systems/BaseSystem.h"
@@ -26,7 +27,6 @@ namespace Engine
 		{
 			MainCamera.AddComponent<Position>();
 			MainCamera.AddComponent<Velocity>();
-			MainCamera.GetComponent<Velocity>().Speed = 512;
 			MainCamera.AddComponent<Zoom>();
 			MainCamera.GetComponent<Zoom>().Value = 1;
 		}

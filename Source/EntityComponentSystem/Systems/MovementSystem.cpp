@@ -17,7 +17,6 @@ namespace Engine
 				Velocity& velocity = entity.GetComponent<Velocity>();
 				velocity.Direction.Normalise();
 				entity.GetComponent<Position>() += velocity.Direction * velocity.Speed * deltaTime;
-				velocity.Direction = Vector2<float>::Zero();
 			}
 		}
 	}

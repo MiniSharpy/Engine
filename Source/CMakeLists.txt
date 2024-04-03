@@ -39,6 +39,8 @@ set(ALL_FILES
     "EntityComponentSystem/Systems/EditorSystem.cpp" 
     "EntityComponentSystem/Systems/MovementSystem.cpp"
     "EntityComponentSystem/Systems/MovementSystem.h"
+    "EntityComponentSystem/Systems/AnimationSystem.h" 
+    "EntityComponentSystem/Systems/AnimationSystem.cpp"
 
     "Commands/Command.h"
     "Commands/CreateEntityCommand.h" 
@@ -77,7 +79,9 @@ set(ALL_FILES
     "Input/Conditions/Condition.h" 
     "Input/Conditions/PressedCondition.h" 
     "Input/Conditions/ReleasedCondition.h" 
-    "Input/Conditions/TapCondition.h"  "Input/Input.h")
+    "Input/Conditions/TapCondition.h"  
+    "Input/Input.h" 
+)
 
 # Copy data folder to build directory. Hard links might be better, then there's less duplicate data. CMAKE_CURRENT_SOURCE_DIR might be better instead of LIST.
 add_custom_target(copy_assets COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_CURRENT_LIST_DIR}/Data ${CMAKE_CURRENT_BINARY_DIR}/Data)

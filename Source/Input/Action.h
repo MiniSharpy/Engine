@@ -5,6 +5,8 @@
 #include <variant>
 #include <ranges>
 
+// TODO: Need ability to execute behaviour when a certain input condition has been met, e.g. release. For example, when
+// movement is over set speed to 0.
 namespace Engine
 {
 	class IAction

@@ -15,8 +15,10 @@
 #include "../Input/Conditions/PressedCondition.h"
 #include "../Input/Conditions/ReleasedCondition.h"
 #include "../Input/Conditions/TapCondition.h"
-#include "Pathfinding/NavigationGraph.h"
+#include "../Pathfinding/NavigationGraph.h"
+#include "EntityComponentSystem/Systems/AnimationSystem.h"
 #include <memory>
+#include <numbers>
 #include <SDL.h>
 #include <format>
 
@@ -29,7 +31,18 @@ namespace Engine
 		Systems.emplace_back(std::make_unique<EditorSystem>(*this));
 		// TODO: Construct and destruct when editor is enabled.
 		Systems.emplace_back(std::make_unique<MovementSystem>(*this));
+		Systems.emplace_back(std::make_unique<AnimationSystem>(*this));
 
+		// Animation Testing
+		MainCamera.AddComponent<Sprite>();
+		Sprite& sprite = MainCamera.GetComponent<Sprite>();
+		sprite.SourceTexture = &Renderer::Instance().GetTexture("AnimationSheet.png");
+		sprite.SourceRectangle = { {}, TileSize};
+		sprite.PivotOffset = { static_cast<float>(TileSize.X) / 2.f, static_cast<float>(TileSize.Y) };
+
+		MainCamera.AddComponent<Animation>();
+
+		// Inputs
 		// Input Behaviour
 		std::function zoomBehaviour = [this](float value)
 		{
@@ -42,7 +55,16 @@ namespace Engine
 		{
 			// No need to constrain value as direction gets normalised anyway.
 			Velocity& velocity = MainCamera.GetComponent<Velocity>();
-			velocity.Direction += value;
+			velocity.Direction = value;
+
+			// Need to clamp to prevent moving faster diagonally, while still allowing for joystick sensitivity be accounted
+			// for.
+			velocity.Speed = std::clamp(value.Length() * 512, 0.f, 512.f); // 512 would be max speed.
+		};
+
+		std::function moveReleaseBehaviour = [this]()
+		{
+			MainCamera.GetComponent<Velocity>().Speed = 0;
 		};
 
 		std::function pressedBehaviour = [this]{ SDL_Log("Pressed!"); };
@@ -79,6 +101,16 @@ namespace Engine
 		moveAction.BindInput<SwizzleModifier, DeadZoneModifier>(
 			SDL_GameControllerGetStringForAxis(SDL_CONTROLLER_AXIS_LEFTY));
 		moveAction.BindInput<DeadZoneModifier>(SDL_GameControllerGetStringForAxis(SDL_CONTROLLER_AXIS_LEFTX));
+
+		Action<>& moveReleaseAction = InputManager.AddAction(moveReleaseBehaviour);
+		moveReleaseAction.BindInput(SDL_GetScancodeName(SDL_SCANCODE_W));
+		moveReleaseAction.BindInput(SDL_GetScancodeName(SDL_SCANCODE_S));
+		moveReleaseAction.BindInput(SDL_GetScancodeName(SDL_SCANCODE_D));
+		moveReleaseAction.BindInput(SDL_GetScancodeName(SDL_SCANCODE_A));
+		moveReleaseAction.GetInput(SDL_GetScancodeName(SDL_SCANCODE_W)).AddCondition<ReleasedCondition>();
+		moveReleaseAction.GetInput(SDL_GetScancodeName(SDL_SCANCODE_S)).AddCondition<ReleasedCondition>();
+		moveReleaseAction.GetInput(SDL_GetScancodeName(SDL_SCANCODE_D)).AddCondition<ReleasedCondition>();
+		moveReleaseAction.GetInput(SDL_GetScancodeName(SDL_SCANCODE_A)).AddCondition<ReleasedCondition>();
 
 		// Condition Tests.
 		Action<>& pressAction = InputManager.AddAction(pressedBehaviour, true);
