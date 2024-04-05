@@ -45,7 +45,7 @@ namespace Engine
 		Sprite& sprite = player.GetComponent<Sprite>();
 		sprite.SourceTexture = &Renderer::Instance().GetTexture("AnimationSheet.png");
 		sprite.SourceRectangle = { {}, TileSize};
-		sprite.PivotOffset = { static_cast<float>(TileSize.X) / 2.f, static_cast<float>(TileSize.Y) / 2.f };
+		sprite.PivotOffset = { static_cast<float>(TileSize.X) / 2.f, static_cast<float>(TileSize.Y) / 1.5f };
 
 
 		// Inputs

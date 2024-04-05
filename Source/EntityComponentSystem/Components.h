@@ -2,6 +2,7 @@
 #include "ComponentHelper.h"
 #include "../Maths/Vector2.h"
 #include "../Maths/Rectangle.h"
+#include <optional>
 #include <vector>
 
 // TODO: Constructors that are forwarded to AddComponent() in the EntityMemoryPool so that I don't need to manually do
@@ -73,6 +74,7 @@ namespace Engine
 
 	struct Pathfinding
 	{
+		std::optional<Vector2<float>> Current;
 		Vector2<float> Goal;
 	};
 
