@@ -8,6 +8,8 @@
 // TODO: Dot product, different orders, const corrected if Vector2 is const. What about constexpr?
 // TODO: Comparisons can cause undesired results. For example std::map uses the less than operator for contains(),
 // meaning negative vectors will be considered the same as positive vectors.
+// TODO: Hadamard product
+// TODO: Just make a matrix class and have there be a type alias?
 namespace Engine
 {
 	/// <summary>

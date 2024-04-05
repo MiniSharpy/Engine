@@ -16,27 +16,25 @@ namespace Engine
 	{
 		for (Entity entity : OwningScene.GetEntityManager().GetEntities())
 		{
-			if (!entity.HasComponents<Velocity, Sprite, Animation>()) { return; }
+			if (!entity.HasComponents<Velocity, Sprite, Animation>()) { continue; }
 			Velocity& velocity = entity.GetComponent<Velocity>();
 			Sprite& sprite = entity.GetComponent<Sprite>();
 			Animation& animation = entity.GetComponent<Animation>();
 
-			// CALCULATE Y COORDINATE
-			// Direction determines which column on the sprite map to render.
+			// CALCULATE DIRECTION
+			// Want in the range 0-360, where Vector2::Up is 0. Unaltered it is 180 degrees.
 			const float angleRadians = std::atan2(velocity.Direction.X, velocity.Direction.Y);
 			const float angleDegrees = angleRadians * (180.f / std::numbers::pi_v<float>);
+			const float angle360 = std::abs(angleDegrees - 180);
 
-			// Want to get in the range 0-360, where Vector2::Up is 0. Unaltered it is 180 degrees.
-			const float angle = std::abs(angleDegrees - 180);
+			const int column = static_cast<int>(angle360 / (360.f / NumberOfDirections));
 
-			const int column = static_cast<int>(angle / (360.f / NumberOfDirections));
-
-			// CALCULATE X COORDINATE
-			// Speed determines whether X = 0.
-			const int row = velocity.Speed > 0 ? 
-				std::clamp(animation.Time / (TimeToLoop / NumberOfFrames) + 1, 1, NumberOfFrames)
+			// CALCULATE FRAME
+			const int row = velocity.Speed > 0 ? // This is imperfect, to say the least.
+				std::clamp(animation.Time / (TimeToLoop / NumberOfFrames) + 1, 1, NumberOfFrames) 
 			: 0;
 
+			// UPDATE COMPONENTS
 			sprite.SourceRectangle.Position = 
 			{
 				row * sprite.SourceRectangle.Size.X,
@@ -45,8 +43,6 @@ namespace Engine
 
 			animation.Time += static_cast<int>(deltaTime * 1000);
 			animation.Time %= TimeToLoop;
-
-			SDL_Log("row: %d, column: %d", row, column);
 		}
 	}
 }

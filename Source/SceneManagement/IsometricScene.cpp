@@ -6,6 +6,8 @@
 #include "../EntityComponentSystem/EntityManager.h"
 #include "../EntityComponentSystem/Systems/EditorSystem.h"
 #include "../EntityComponentSystem/Systems/MovementSystem.h"
+#include "../EntityComponentSystem/Systems/AnimationSystem.h"
+#include "../EntityComponentSystem/Systems/PathfindingSystem.h"
 #include "../Input/Action.h"
 #include "../Input/Modifiers/NegateModifier.h"
 #include "../Input/Modifiers/SwizzleModifier.h"
@@ -14,9 +16,7 @@
 #include "../Input/Modifiers/DeltaTimeModifier.h"
 #include "../Input/Conditions/PressedCondition.h"
 #include "../Input/Conditions/ReleasedCondition.h"
-#include "../Input/Conditions/TapCondition.h"
 #include "../Pathfinding/NavigationGraph.h"
-#include "EntityComponentSystem/Systems/AnimationSystem.h"
 #include <memory>
 #include <numbers>
 #include <SDL.h>
@@ -32,15 +32,21 @@ namespace Engine
 		// TODO: Construct and destruct when editor is enabled.
 		Systems.emplace_back(std::make_unique<MovementSystem>(*this));
 		Systems.emplace_back(std::make_unique<AnimationSystem>(*this));
+		Systems.emplace_back(std::make_unique<PathfindingSystem>(*this));
 
-		// Animation Testing
-		MainCamera.AddComponent<Sprite>();
-		Sprite& sprite = MainCamera.GetComponent<Sprite>();
+		// Player Character
+		Entity player = GetEntityManager().AddEntity("Player");
+		player.AddComponent<Position>();
+		player.AddComponent<Velocity>();
+		player.AddComponent<Animation>();
+		player.AddComponent<Pathfinding>();
+		player.AddComponent<Sprite>();
+
+		Sprite& sprite = player.GetComponent<Sprite>();
 		sprite.SourceTexture = &Renderer::Instance().GetTexture("AnimationSheet.png");
 		sprite.SourceRectangle = { {}, TileSize};
-		sprite.PivotOffset = { static_cast<float>(TileSize.X) / 2.f, static_cast<float>(TileSize.Y) };
+		sprite.PivotOffset = { static_cast<float>(TileSize.X) / 2.f, static_cast<float>(TileSize.Y) / 2.f };
 
-		MainCamera.AddComponent<Animation>();
 
 		// Inputs
 		// Input Behaviour
@@ -67,14 +73,16 @@ namespace Engine
 			MainCamera.GetComponent<Velocity>().Speed = 0;
 		};
 
-		std::function pressedBehaviour = [this]{ SDL_Log("Pressed!"); };
-		std::function releaseBehaviour = [this]{ SDL_Log("Release!"); };
-		std::function tapBehaviour = [this]{ SDL_Log("Tap!"); };
-
 		std::function mouseBehaviour = [this](Vector2<float> value)
 		{
-			Vector2 mousePosition = value;
-			SDL_Log("Mouse Position: {%f, %f}", mousePosition.X, mousePosition.Y);
+			const Vector2<float> goal = 
+				GridToWorldSpace
+				(
+					ScreenSpaceToGrid(ImGui::GetMousePos())
+				) + Vector2<float>{ 0, TileSize.Y / 4.f };
+
+			Pathfinding& pathfinding = GetEntityManager().GetEntitiesByTag("Player")[0].GetComponent<Pathfinding>();
+			pathfinding.Goal = goal;
 		};
 
 		// Input Binding
@@ -112,20 +120,8 @@ namespace Engine
 		moveReleaseAction.GetInput(SDL_GetScancodeName(SDL_SCANCODE_D)).AddCondition<ReleasedCondition>();
 		moveReleaseAction.GetInput(SDL_GetScancodeName(SDL_SCANCODE_A)).AddCondition<ReleasedCondition>();
 
-		// Condition Tests.
-		Action<>& pressAction = InputManager.AddAction(pressedBehaviour, true);
-		pressAction.BindInput(SDL_GetScancodeName(SDL_SCANCODE_SPACE));
-		pressAction.GetInput(SDL_GetScancodeName(SDL_SCANCODE_SPACE)).AddCondition<PressedCondition>();
-
-		Action<>& releaseAction = InputManager.AddAction(releaseBehaviour, true);
-		releaseAction.BindInput(SDL_GetScancodeName(SDL_SCANCODE_SPACE));
-		releaseAction.GetInput(SDL_GetScancodeName(SDL_SCANCODE_SPACE)).AddCondition<ReleasedCondition>();
-
-		Action<>& tapAction = InputManager.AddAction(tapBehaviour, true);
-		tapAction.BindInput(SDL_GetScancodeName(SDL_SCANCODE_SPACE));
-		tapAction.GetInput(SDL_GetScancodeName(SDL_SCANCODE_SPACE)).AddCondition<TapCondition>();
-
-		Action<Vector2<float>>& mouseAction = InputManager.AddAction(mouseBehaviour, true);
+		// Character Movement
+		Action<Vector2<float>>& mouseAction = InputManager.AddAction(mouseBehaviour);
 		mouseAction.BindInput("Mouse Button Left");
 		mouseAction.GetInput("Mouse Button Left").AddCondition<PressedCondition>();
 	}

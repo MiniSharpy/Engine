@@ -40,6 +40,7 @@ namespace Engine
 		/// Pointer to texture rather than a reference so that default entities can be list initialised in the same vein as other components.
 		/// Should never be a nullptr provided objects are constructed properly.
 		///	TODO: It would be safer to just store the path to the texture/name in the map rather than the pointer and access it through the map.
+		///	Though that would mean no access to helper functions which is a bit of a loss. Perhaps std::optional instead?
 		/// </summary>
 		Texture* SourceTexture = nullptr;
 
@@ -70,7 +71,12 @@ namespace Engine
 		// TODO: Bitmask for affecting things like path finding, lighting, sound, etc.
 	};
 
-	using Components = TypeList<Position, Velocity, Zoom, Sprite, Animation, Collider>;
+	struct Pathfinding
+	{
+		Vector2<float> Goal;
+	};
+
+	using Components = TypeList<Position, Velocity, Zoom, Sprite, Animation, Collider, Pathfinding>;
 	using ComponentPool = ComponentHelper<Components>::Pool;
 	using ComponentSlice = ComponentHelper<Components>::Slice;
 	using ComponentReferenceSlice = ComponentHelper<Components>::ReferenceSlice;
