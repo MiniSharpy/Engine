@@ -51,7 +51,7 @@ namespace Engine
 		/// <param name="goal">The goal node to path from.</param>
 		/// <returns>A sequence of nodes that form a path from the start node to the goal node. <br>
 		/// If a path is not possible an empty collection will be returned.</returns>
-		static std::vector<Vector2<int>> ConstructPath(const std::unordered_map<Vector2<int>, Vector2<int>>& edges, Vector2<int> start, Vector2<int> end);
+		std::vector<Vector2<int>> ConstructPath(const std::unordered_map<Vector2<int>, Vector2<int>>& edges, Vector2<int> start, Vector2<int> goal);
 
 	};
 }

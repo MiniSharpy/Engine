@@ -75,11 +75,7 @@ namespace Engine
 
 		std::function mouseBehaviour = [this](Vector2<float> value)
 		{
-			const Vector2<float> goal = 
-				GridToWorldSpace
-				(
-					ScreenSpaceToGrid(ImGui::GetMousePos())
-				) + Vector2<float>{ 0, TileSize.Y / 4.f };
+			const Vector2<float> goal = ScreenSpaceToGrid(ImGui::GetMousePos());
 
 			Pathfinding& pathfinding = GetEntityManager().GetEntitiesByTag("Player")[0].GetComponent<Pathfinding>();
 			pathfinding.Goal = goal;

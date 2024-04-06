@@ -22,22 +22,25 @@ namespace Engine
 			Position& position = entity.GetComponent<Position>();
 			Velocity& velocity = entity.GetComponent<Velocity>();
 
+			Vector2<float> currentPosition = Vector2<float>{ position.X, position.Y };
+
 			if (pathfinding.Current)
 			{
-				Vector2<float> currentPosition = { position.X, position.Y };
 
 				constexpr auto almostEquals = [](float lhs, float rhs)
 				{
-					constexpr float epsilon = 1.f;
+					constexpr float epsilon = 5.f;
 					return std::abs(lhs - rhs) < epsilon ? true : false;
 				};
 
+				Vector2<float> targetPosition = Vector2<float>{ pathfinding.Current->X, pathfinding.Current->Y };
 
-				SDL_Log("Target: %f, %f", pathfinding.Current->X, pathfinding.Current->Y);
+
 				SDL_Log("Current: %f, %f", currentPosition.X, currentPosition.Y);
+				SDL_Log("Target: %f, %f", targetPosition.X, targetPosition.Y);
 
-				if (almostEquals(pathfinding.Current->X, currentPosition.X) &&
-					almostEquals(pathfinding.Current->Y, currentPosition.Y))
+				if (almostEquals(targetPosition.X, currentPosition.X) &&
+					almostEquals(targetPosition.Y, currentPosition.Y))
 				{
 					velocity.Speed = 0;
 					pathfinding.Current = std::nullopt;
@@ -45,9 +48,7 @@ namespace Engine
 			}
 			else
 			{
-				Vector2 grid = scene->WorldSpaceToGrid({ position.X, position.Y });
-				Vector2 clampedWorld = scene->GridToWorldSpace(grid);
-				const Vector2<int> start = static_cast<Vector2<int>>(clampedWorld) + Vector2<int>{ 0, scene->TileSize.Y / 4 };
+				const Vector2<int> start = static_cast<Vector2<int>>(scene->WorldSpaceToGrid({position.X, position.Y}));
 				const Vector2<int> goal = static_cast<Vector2<int>>(pathfinding.Goal);
 
 				auto edges = scene->ManagedNavigationGraph.AStar(start, goal);
@@ -56,7 +57,8 @@ namespace Engine
 				if (edges.size() > 1)
 				{
 					velocity.Speed = 256;
-					velocity.Direction = static_cast<Vector2<float>>(path[1] - path[0]);
+					velocity.Direction = static_cast<Vector2<float>>(path[1] - static_cast<Vector2<int>>(currentPosition));
+					velocity.Direction.Normalise();
 					pathfinding.Current = static_cast<Vector2<float>>(path[1]);
 				}
 			}

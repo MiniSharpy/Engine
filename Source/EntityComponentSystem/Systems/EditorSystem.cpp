@@ -222,12 +222,11 @@ namespace Engine
 			// TODO: This is quite awkward because the start and goal need to be a particular distance apart for the neighbour checking.
 			// It might make more sense to use the grid position, but that'll need conversion inside the function to handle collisions.
 			Position& playerPosition = OwningScene.GetEntityManager().GetEntitiesByTag("Player")[0].GetComponent<Position>();
-			Vector2 grid = OwningScene.WorldSpaceToGrid({ playerPosition.X, playerPosition.Y });
-			Vector2 clampedWorld = OwningScene.GridToWorldSpace(grid);
-			const Vector2<int> start = static_cast<Vector2<int>>(clampedWorld) + Vector2<int>{ 0, OwningScene.TileSize.Y / 4 };
-			const Vector2<int> mousePosition = static_cast<Vector2<int>>(OwningScene.GridToWorldSpace(OwningScene.ScreenSpaceToGrid(ImGui::GetMousePos()))) + Vector2<int>{ 0, OwningScene.TileSize.Y / 4 };
-			auto cameFrom = OwningScene.ManagedNavigationGraph.AStar(start, mousePosition);
-			auto path = NavigationGraph::ConstructPath(cameFrom, start, mousePosition);
+			const Vector2<int> start = static_cast<Vector2<int>>(OwningScene.WorldSpaceToGrid({playerPosition.X, playerPosition.Y}));
+			const Vector2<int> goal = static_cast<Vector2<int>>(OwningScene.ScreenSpaceToGrid(ImGui::GetMousePos()));
+
+			auto cameFrom = OwningScene.ManagedNavigationGraph.AStar(start, goal);
+			auto path = OwningScene.ManagedNavigationGraph.ConstructPath(cameFrom, start, goal);
 
 			for (int i = 1; i < path.size(); ++i)
 			{

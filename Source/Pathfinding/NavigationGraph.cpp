@@ -76,6 +76,16 @@ namespace Engine
 	std::unordered_map<Vector2<int>, Vector2<int>> NavigationGraph::BreadthFirstSearch(
 		Vector2<int> start, std::optional<Vector2<int>> goal) const
 	{
+		Vector2<int> startWorld = static_cast<Vector2<int>>(Scene.GridToWorldSpace(static_cast<Vector2<float>>(start)));
+		start = static_cast<Vector2<int>>(startWorld) + Vector2<int>{ 0, Scene.TileSize.Y / 4 };
+
+		if (goal)
+		{
+			Vector2<int> goalWorld = static_cast<Vector2<int>>(Scene.GridToWorldSpace(static_cast<Vector2<float>>(*goal)));
+			goal = static_cast<Vector2<int>>(goalWorld) + Vector2<int>{ 0, Scene.TileSize.Y / 4 };
+		}
+
+
 		std::queue<Vector2<int>> toExplore;
 		toExplore.push(start);
 		std::unordered_map<Vector2<int>, Vector2<int>> edges;
@@ -110,6 +120,12 @@ namespace Engine
 	std::unordered_map<Vector2<int>, Vector2<int>> NavigationGraph::AStar(Vector2<int> start,
 		Vector2<int> goal) const
 	{
+		Vector2<int> startWorld = static_cast<Vector2<int>>(Scene.GridToWorldSpace(static_cast<Vector2<float>>(start)));
+		start = static_cast<Vector2<int>>(startWorld) + Vector2<int>{ 0, Scene.TileSize.Y / 4 };
+
+		Vector2<int> goalWorld = static_cast<Vector2<int>>(Scene.GridToWorldSpace(static_cast<Vector2<float>>(goal)));
+		goal = static_cast<Vector2<int>>(goalWorld) + Vector2<int>{ 0, Scene.TileSize.Y / 4 };
+
 		// Heuristic to expand search towards goal rather than equally in all directions.
 		auto manhattanDistance = [](const Vector2<int> lhs, const Vector2<int> rhs) { return std::abs(lhs.X - rhs.X) + std::abs(lhs.Y - rhs.Y); };
 
@@ -151,12 +167,18 @@ namespace Engine
 	}
 
 	std::vector<Vector2<int>> NavigationGraph::ConstructPath(
-		const std::unordered_map<Vector2<int>, Vector2<int>>& edges, Vector2<int> start, Vector2<int> end)
+		const std::unordered_map<Vector2<int>, Vector2<int>>& edges, Vector2<int> start, Vector2<int> goal)
 	{
+		Vector2<int> startWorld = static_cast<Vector2<int>>(Scene.GridToWorldSpace(static_cast<Vector2<float>>(start)));
+		start = static_cast<Vector2<int>>(startWorld) + Vector2<int>{ 0, Scene.TileSize.Y / 4 };
+
+		Vector2<int> goalWorld = static_cast<Vector2<int>>(Scene.GridToWorldSpace(static_cast<Vector2<float>>(goal)));
+		goal = static_cast<Vector2<int>>(goalWorld) + Vector2<int>{ 0, Scene.TileSize.Y / 4 };
+
 		// TODO: Unit test: No start, no end, no path from start to end, start came from start (Not sure if there's some edge case that could cause problems here).
 		std::vector<Vector2<int>> path;
 
-		Vector2<int> current = end;
+		Vector2<int> current = goal;
 		while (current != start)
 		{
 			// It's possible that the start and end node are in the map but not connected, e.g. an isolated island.

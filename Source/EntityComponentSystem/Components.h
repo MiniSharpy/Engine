@@ -74,7 +74,14 @@ namespace Engine
 
 	struct Pathfinding
 	{
+		/// <summary>
+		/// Grid coordinates.
+		/// </summary>
 		std::optional<Vector2<float>> Current;
+
+		/// <summary>
+		/// Grid coordinates.
+		/// </summary>
 		Vector2<float> Goal;
 	};
 
