@@ -44,12 +44,18 @@ namespace Engine
 				{
 					velocity.Speed = 0;
 					pathfinding.Current = std::nullopt;
+
+					// Just ensure it's exactly in the correct place. Should help prevent floating point errors adding up.
+					position.X = targetPosition.X;
+					position.Y = targetPosition.Y;
 				}
 			}
 			else
 			{
 				const Vector2<int> start = static_cast<Vector2<int>>(scene->WorldSpaceToGrid({position.X, position.Y}));
 				const Vector2<int> goal = static_cast<Vector2<int>>(pathfinding.Goal);
+
+				if (start == goal) { continue; }
 
 				auto edges = scene->ManagedNavigationGraph.AStar(start, goal);
 				auto path = scene->ManagedNavigationGraph.ConstructPath(edges, start, goal);

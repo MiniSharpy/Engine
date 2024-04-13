@@ -16,7 +16,7 @@ namespace Engine
 	std::vector<Vector2<int>> NavigationGraph::GetNeighbours(Vector2<int> centralNode) const // TODO: Make lambda and pass in via constructor? That way individual scenes could handle this function and it would avoid inheritence.
 	{
 		// Early exit to prevent never ending search. TODO: Probably better way to handle this.
-		if (centralNode.Length() > 1000) { return {}; }
+		//if (centralNode.Length() > 1000) { return {}; }
 
 		// Start by getting the adjacent nodes to the passed node.
 		std::vector adjacentNodes = Directions;

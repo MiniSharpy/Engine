@@ -12,11 +12,18 @@ namespace Engine
 	{
 		for (auto& entity : OwningScene.GetEntityManager().GetEntities())
 		{
-			if (entity.HasComponents<Position, Velocity>())
+			if (!entity.HasComponents<Position, Velocity>()) { return; }
+
+			Position& position = entity.GetComponent<Position>();
+			Velocity& velocity = entity.GetComponent<Velocity>();
+			velocity.Direction.Normalise();
+			position += velocity.Direction * velocity.Speed * deltaTime;
+
+			// Just for testing.
+			if (position.LengthSquared() > 1024 * 1024)
 			{
-				Velocity& velocity = entity.GetComponent<Velocity>();
-				velocity.Direction.Normalise();
-				entity.GetComponent<Position>() += velocity.Direction * velocity.Speed * deltaTime;
+				position.X = 0;
+				position.Y = 0;
 			}
 		}
 	}

@@ -5,6 +5,7 @@
 #include "../../Commands/UndoManager.h"
 #include "../../Editor/TileAtlas.h"
 #include <optional>
+#include <random>
 #include <string>
 #include <vector>
 
@@ -46,7 +47,12 @@ namespace Engine
 		// Tile Actions
 		UndoManager OwnedUndoManager;
 
+		// Testing
+		int numberOfEntities = 0;
+		void SpawnEntities();
+
 	public:
 		virtual void Update(const float& deltaTime);
+		bool IsEnabled = true;
 	};
 }

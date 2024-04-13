@@ -16,6 +16,7 @@
 #include <optional>
 #include <limits>
 #include <format>
+#include <numbers>
 
 namespace Engine
 {
@@ -277,8 +278,45 @@ namespace Engine
 		return {};
 	}
 
+	void EditorSystem::SpawnEntities()
+	{
+		ImGui::InputInt("Entity Count:", &numberOfEntities);
+
+		EntityManager& entityManager = OwningScene.GetEntityManager();
+		std::vector<Entity>& testNPCs = entityManager.GetEntitiesByTag("TestNPC");
+
+		for (int i = testNPCs.size(); i < numberOfEntities; ++i) // Spawn new entities.
+		{
+			Entity entity = entityManager.AddEntity("TestNPC");
+			entity.AddComponent<Position>();
+			entity.AddComponent<Velocity>();
+			entity.AddComponent<Sprite>();
+			entity.AddComponent<Animation>();
+
+			Velocity& velocity = entity.GetComponent<Velocity>();
+
+			constexpr int segments = 128;
+			constexpr float angleIncrements = (2 * std::numbers::pi_v<float>) / segments;
+			velocity.Speed = 64 * ((i / segments) + 1);
+			velocity.Direction.X = std::cosf(angleIncrements * (i % segments));
+			velocity.Direction.Y = std::sinf(angleIncrements * (i % segments));
+
+			Sprite& sprite = entity.GetComponent<Sprite>();
+			sprite.SourceTexture = &Renderer::Instance().GetTexture("AnimationSheet.png");
+			sprite.SourceRectangle = { {}, OwningScene.TileSize };
+			sprite.PivotOffset = { static_cast<float>(OwningScene.TileSize.X) / 2.f, static_cast<float>(OwningScene.TileSize.Y) / 1.5f };
+		}
+
+		for (int i = testNPCs.size(); i > numberOfEntities; --i) // Delete exceeded entities.
+		{
+			entityManager.Destroy(testNPCs[i - 1]);
+		}
+	}
+
 	void EditorSystem::Update(const float& deltaTime)
 	{
+		if (!IsEnabled) { return; }
+
 		// TODO: Hotkey to enable debug. Perhaps tilde?
 		MapSettings();
 		MapDebug();
@@ -290,6 +328,7 @@ namespace Engine
 		{
 			if (ImGui::BeginTabItem("Entity Outliner"))
 			{
+				SpawnEntities();
 				selectedEntity = EntityOutliner();
 				SelectedTile = {};
 				ImGui::EndTabItem();

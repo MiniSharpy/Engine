@@ -17,6 +17,7 @@
 #include "../Input/Conditions/PressedCondition.h"
 #include "../Input/Conditions/ReleasedCondition.h"
 #include "../Pathfinding/NavigationGraph.h"
+#include <execution>
 #include <memory>
 #include <numbers>
 #include <SDL.h>
@@ -46,7 +47,6 @@ namespace Engine
 		sprite.SourceTexture = &Renderer::Instance().GetTexture("AnimationSheet.png");
 		sprite.SourceRectangle = { {}, TileSize};
 		sprite.PivotOffset = { static_cast<float>(TileSize.X) / 2.f, static_cast<float>(TileSize.Y) / 1.5f };
-
 
 		// Inputs
 		// Input Behaviour
@@ -78,7 +78,14 @@ namespace Engine
 			const Vector2<float> goal = ScreenSpaceToGrid(ImGui::GetMousePos());
 
 			Pathfinding& pathfinding = GetEntityManager().GetEntitiesByTag("Player")[0].GetComponent<Pathfinding>();
+			pathfinding.Current = {};
 			pathfinding.Goal = goal;
+		};
+
+		std::function editorBehaviour = [this]()
+		{
+			EditorSystem* system = static_cast<EditorSystem*>(Systems[0].get());
+			system->IsEnabled = !system->IsEnabled;
 		};
 
 		// Input Binding
@@ -120,6 +127,11 @@ namespace Engine
 		Action<Vector2<float>>& mouseAction = InputManager.AddAction(mouseBehaviour);
 		mouseAction.BindInput("Mouse Button Left");
 		mouseAction.GetInput("Mouse Button Left").AddCondition<PressedCondition>();
+
+		// Editor Toggle
+		Action<>& editorAction = InputManager.AddAction(editorBehaviour);
+		editorAction.BindInput(SDL_GetScancodeName(SDL_SCANCODE_GRAVE));
+		editorAction.GetInput(SDL_GetScancodeName(SDL_SCANCODE_GRAVE)).AddCondition<PressedCondition>();
 	}
 
 	IsometricScene::~IsometricScene()
@@ -234,7 +246,7 @@ namespace Engine
 		// entities need to overlap they have a Z order requiring the entities to be sorted by Y position conditionally.
 
 		// Sort by Z to get the vector into sections so that they correctly overlap one another.
-		std::sort(entities.begin(), entities.end(),
+		std::sort(std::execution::par_unseq, entities.begin(), entities.end(),
 			[](Entity a, Entity b) { return a.GetComponent<Position>().Z < b.GetComponent<Position>().Z; });
 
 		// Sort each previous section as the transitions between Z layers are discovered.
@@ -244,14 +256,14 @@ namespace Engine
 			// This won't trigger for the final section.
 			if (entities[i-1].GetComponent<Position>().Z != entities[i].GetComponent<Position>().Z)
 			{
-				std::sort(entities.begin() + lastZOrderChange, entities.begin() + i,
+				std::sort(std::execution::par_unseq, entities.begin() + lastZOrderChange, entities.begin() + i,
 					[](Entity a, Entity b) { return a.GetComponent<Position>().Y < b.GetComponent<Position>().Y; });
 				lastZOrderChange = i;
 			}
 		}
 
 		// Sort the final section.
-		std::sort(entities.begin() + lastZOrderChange, entities.end(),
+		std::sort(std::execution::par_unseq, entities.begin() + lastZOrderChange, entities.end(),
 			[](Entity a, Entity b) { return a.GetComponent<Position>().Y < b.GetComponent<Position>().Y; });
 	}
 
