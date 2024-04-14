@@ -18,7 +18,8 @@ project ("Engine")
 
 enable_testing()
 
-set (CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # Pass debug symbol for Linux. Applies to sub directories.
 if (${CMAKE_BUILD_TYPE} STREQUAL Debug)

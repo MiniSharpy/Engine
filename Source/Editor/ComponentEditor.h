@@ -72,8 +72,8 @@ namespace Engine
 
 			const Vector2<float> snappedPixel =
 			{
-				Snapping.X * round(hoveredPixel.X / (float)Snapping.X),
-				Snapping.Y * round(hoveredPixel.Y / (float)Snapping.Y)
+				Snapping.X * std::round(hoveredPixel.X / static_cast<float>(Snapping.X)),
+				Snapping.Y * std::round(hoveredPixel.Y / static_cast<float>(Snapping.Y))
 			};
 
 			// Place

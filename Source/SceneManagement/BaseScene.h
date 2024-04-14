@@ -6,7 +6,6 @@
 #include "../EntityComponentSystem/EntityManager.h"
 #include "../EntityComponentSystem/Systems/BaseSystem.h"
 #include "../Input/Input.h"
-#include <execution>
 #include <memory>
 
 

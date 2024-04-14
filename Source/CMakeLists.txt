@@ -93,6 +93,7 @@ find_package(imgui CONFIG REQUIRED)
 find_package(SDL2 CONFIG REQUIRED)
 find_package(SDL2_ttf CONFIG REQUIRED)
 find_package(SDL2_image CONFIG REQUIRED)
+find_package(TBB CONFIG REQUIRED) # Needed for std::execution on Linux.
 
 # Create project as static library to link against in testing.
 add_library(${PROJECT_NAME}_static STATIC ${ALL_FILES})
@@ -106,6 +107,7 @@ target_link_libraries(${PROJECT_NAME}_static PRIVATE SDL2::SDL2 SDL2::SDL2main)
 target_link_libraries(${PROJECT_NAME}_static PRIVATE $<IF:$<TARGET_EXISTS:SDL2_image::SDL2_image>,SDL2_image::SDL2_image,SDL2_image::SDL2_image-static>)
 target_link_libraries(${PROJECT_NAME}_static PRIVATE imgui::imgui)
 target_link_libraries(${PROJECT_NAME}_static PRIVATE $<IF:$<TARGET_EXISTS:SDL2_ttf::SDL2_ttf>,SDL2_ttf::SDL2_ttf,SDL2_ttf::SDL2_ttf-static>)
+target_link_libraries(${PROJECT_NAME}_static PRIVATE TBB::tbb)                                                                                                                    
 
 # Add source to this project's executable.
 add_executable(${PROJECT_NAME} "main.cpp")

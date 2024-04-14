@@ -17,6 +17,7 @@
 #include <limits>
 #include <format>
 #include <numbers>
+#include <cmath>
 
 namespace Engine
 {
@@ -298,8 +299,8 @@ namespace Engine
 			constexpr int segments = 128;
 			constexpr float angleIncrements = (2 * std::numbers::pi_v<float>) / segments;
 			velocity.Speed = 64 * ((i / segments) + 1);
-			velocity.Direction.X = std::cosf(angleIncrements * (i % segments));
-			velocity.Direction.Y = std::sinf(angleIncrements * (i % segments));
+			velocity.Direction.X = std::cos(angleIncrements * (i % segments));
+			velocity.Direction.Y = std::sin(angleIncrements * (i % segments));
 
 			Sprite& sprite = entity.GetComponent<Sprite>();
 			sprite.SourceTexture = &Renderer::Instance().GetTexture("AnimationSheet.png");

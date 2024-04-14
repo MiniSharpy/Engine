@@ -97,8 +97,8 @@ namespace Engine
 		/// Uses double square root to avoid loss of precision.
 		/// </summary>
 		/// <returns> A float, or T. Whichever has higher precision. </returns>
-		using FloatOrT = std::common_type<float, T>::type;
-		FloatOrT Length() const { return (FloatOrT)sqrt(LengthSquared()); }
+		using FloatOrT = std::common_type_t<float, T>;
+		FloatOrT Length() const { return static_cast<FloatOrT>(sqrt(LengthSquared())); }
 
 		/// <summary>
 		/// Calculate the sum of the areas of two squares.
