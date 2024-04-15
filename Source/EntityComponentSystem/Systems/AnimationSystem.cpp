@@ -23,26 +23,28 @@ namespace Engine
 
 			// CALCULATE DIRECTION
 			// Want in the range 0-360, where Vector2::Up is 0. Unaltered it is 180 degrees.
+			const float angleIncrement = (360.f / NumberOfDirections);
 			const float angleRadians = std::atan2(velocity.Direction.X, velocity.Direction.Y);
 			const float angleDegrees = angleRadians * (180.f / std::numbers::pi_v<float>);
 			const float angle360 = std::abs(angleDegrees - 180);
 
-			const int column = static_cast<int>(angle360 / (360.f / NumberOfDirections));
+			const float snappedAngle = angleIncrement * std::round(angle360 / angleIncrement);
+			const int row = static_cast<int>(snappedAngle / angleIncrement) % NumberOfDirections;
 
 			// CALCULATE FRAME
-			const int row = velocity.Speed > 0 ? // This is imperfect, to say the least.
+			animation.Time += static_cast<int>(deltaTime * 1000);
+			animation.Time %= TimeToLoop;
+
+			const int column = velocity.Speed > 0 ? // This is imperfect, to say the least.
 				std::clamp(animation.Time / (TimeToLoop / NumberOfFrames) + 1, 1, NumberOfFrames) 
 			: 0;
 
 			// UPDATE COMPONENTS
 			sprite.SourceRectangle.Position = 
 			{
-				row * sprite.SourceRectangle.Size.X,
-				column * sprite.SourceRectangle.Size.Y
+				column * sprite.SourceRectangle.Size.X,
+				row * sprite.SourceRectangle.Size.Y
 			};
-
-			animation.Time += static_cast<int>(deltaTime * 1000);
-			animation.Time %= TimeToLoop;
 		}
 	}
 }
