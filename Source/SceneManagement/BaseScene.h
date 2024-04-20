@@ -6,7 +6,10 @@
 #include "../EntityComponentSystem/EntityManager.h"
 #include "../EntityComponentSystem/Systems/BaseSystem.h"
 #include "../Input/Input.h"
+#include <execution>
 #include <memory>
+#include <thread>
+#include "../Core/ThreadPool.h"
 
 
 namespace Engine
@@ -15,6 +18,9 @@ namespace Engine
 
 	class BaseScene
 	{
+	private:
+		ThreadPool Pool;
+
 	protected:
 		EntityManager ManagedEntityManager;
 		std::vector<std::unique_ptr<BaseSystem>> Systems;
@@ -29,8 +35,13 @@ namespace Engine
 			MainCamera.AddComponent<Velocity>();
 			MainCamera.AddComponent<Zoom>();
 			MainCamera.GetComponent<Zoom>().Value = 1;
+
+			Pool.Start();
 		}
-		virtual ~BaseScene() = default;
+		virtual ~BaseScene()
+		{
+			Pool.Stop();
+		}
 
 		virtual void Update(const float& deltaTime) 
 		{
@@ -38,10 +49,13 @@ namespace Engine
 
 			for (const auto& system : Systems)
 			{
-				system->Update(deltaTime);
+				Pool.QueueJob([&system, deltaTime]() { system->Update(deltaTime); });
 			}
+
+			Pool.Busy();
 		}
 		virtual void Render(Renderer& renderer) = 0;
+
 		EntityManager& GetEntityManager() { return ManagedEntityManager; }
 
 		/// <summary>

@@ -1,8 +1,8 @@
 #pragma once
-#include "EntityComponentSystem/EntityMemoryPool.h"
+#include "../EntityComponentSystem/EntityMemoryPool.h"
 #include "../Maths/Vector2.h"
 #include "../EntityComponentSystem/Components.h"
-#include "EntityComponentSystem/TupleHelper.h"
+#include "../EntityComponentSystem/TupleHelper.h"
 #include <imgui.h>
 #include <array>
 #include <bitset>

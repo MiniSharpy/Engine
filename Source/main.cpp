@@ -10,6 +10,8 @@
 
 using namespace Engine;
 
+float AverageFrameTime = 0;
+
 /// <summary>
 /// Calculate the frame time (Time between each iteration of the game loop), and or ensure the frame time meets the target
 /// frame time.
@@ -66,7 +68,10 @@ int main(int, char**)
 		game.Update(deltaTime, settings, sceneManager.GetCurrentScene(), events);
 		renderer.Render(sceneManager.GetCurrentScene());
 		deltaTime = FrameTimeManagement(frameTimer, settings.GetTargetFrameTime());
+		AverageFrameTime = (AverageFrameTime + deltaTime) / 2;
 	}
 
+	SDL_Log("Average frame time: %f", AverageFrameTime);
+	SDL_Log("Average fps: %f", 1.f / AverageFrameTime);
 	return 0;
 }
