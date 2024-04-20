@@ -4,13 +4,18 @@
 #include "../Maths/Vector2.h"
 #include "../EntityComponentSystem/Entity.h"
 #include "../Pathfinding/NavigationGraph.h"
+#include "../EntityComponentSystem/Systems/EditorSystem.h"
 
 namespace Engine
 {
 	class Renderer;
+	class EditorSystem;
 
 	class IsometricScene : public BaseScene, public IGrid
 	{
+	private:
+		std::unique_ptr<EditorSystem> Editor;
+
 	public:
 		/// <summary>
 		/// Scenes should never be constructed manually, only through scene manager! 

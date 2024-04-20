@@ -25,12 +25,10 @@
 
 namespace Engine
 {
-	IsometricScene::IsometricScene(const float& deltaTime) : BaseScene(deltaTime), ManagedNavigationGraph(NavigationGraph(*this))
+	IsometricScene::IsometricScene(const float& deltaTime) : BaseScene(deltaTime), ManagedNavigationGraph(NavigationGraph(*this)), Editor(std::make_unique<EditorSystem>(*this))
 	{
 		// Base class constructor is called implicitly.
 		// Initialiser lists copy construct, and because unique pointers can't be copy constructed need to add to the vector instead.
-		Systems.emplace_back(std::make_unique<EditorSystem>(*this));
-		// TODO: Construct and destruct when editor is enabled.
 		Systems.emplace_back(std::make_unique<MovementSystem>(*this));
 		Systems.emplace_back(std::make_unique<AnimationSystem>(*this));
 		Systems.emplace_back(std::make_unique<PathfindingSystem>(*this));
@@ -75,6 +73,8 @@ namespace Engine
 
 		std::function mouseBehaviour = [this](Vector2<float> value)
 		{
+			if (!Events::Instance().IsKeyDown(SDL_SCANCODE_LCTRL)) { return; }
+
 			const Vector2<float> goal = ScreenSpaceToGrid(ImGui::GetMousePos());
 
 			Pathfinding& pathfinding = GetEntityManager().GetEntitiesByTag("Player")[0].GetComponent<Pathfinding>();
@@ -84,8 +84,7 @@ namespace Engine
 
 		std::function editorBehaviour = [this]()
 		{
-			EditorSystem* system = static_cast<EditorSystem*>(Systems[0].get());
-			system->IsEnabled = !system->IsEnabled;
+			Editor->IsEnabled = !Editor->IsEnabled;
 		};
 
 		// Input Binding
@@ -142,6 +141,7 @@ namespace Engine
 	void IsometricScene::Update(const float& deltaTime)
 	{
 		BaseScene::Update(deltaTime);
+		Editor->Update(deltaTime);
 	}
 
 	void IsometricScene::Render(Renderer& renderer)
@@ -191,6 +191,8 @@ namespace Engine
 
 	void IsometricScene::RenderGrid(Renderer& renderer)
 	{
+		if (!Editor->IsEnabled) { return; }
+
 		// TODO: Optimise. What might be better is to render once to a surface that's retained between loops and is moved according to the camera.
 		renderer.SetRenderColour(255, 0, 0, 255);
 		float zoom = MainCamera.GetComponent<Zoom>().Value;
