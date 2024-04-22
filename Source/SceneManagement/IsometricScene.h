@@ -4,7 +4,6 @@
 #include "../Maths/Vector2.h"
 #include "../EntityComponentSystem/Entity.h"
 #include "../Pathfinding/NavigationGraph.h"
-#include "../EntityComponentSystem/Systems/EditorSystem.h"
 
 namespace Engine
 {
