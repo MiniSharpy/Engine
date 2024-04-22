@@ -11,7 +11,7 @@ add_executable(EngineTests
 "Maths/RectangleTests.cpp"
 "Collision/CollisionTests.cpp" 
 "SceneManagement/IsometricSceneTests.cpp" 
-"Commands/CreateEntityCommandTests.cpp" 
+"Commands/CommandTests.cpp" 
 )
 
 set_property(TARGET EngineTests PROPERTY CXX_STANDARD 20)
