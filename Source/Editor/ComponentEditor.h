@@ -5,6 +5,7 @@
 #include <bitset>
 #include "../Maths/Vector2.h"
 #include "../Core/Texture.h"
+#include "Core/Renderer.h"
 #include <imgui.h>
 namespace Engine
 {
@@ -36,7 +37,7 @@ namespace Engine
 		if (isMissingDependencies) { ImGui::Text("COLLIDER COMPONENT REQUIRES SPRITE COMPONENT!"); return; } // TODO: Report missing sprite component in whatever system deals with colliders?
 
 		const Sprite& sprite = std::get<Sprite&>(components);
-		if (!sprite.SourceTexture) { ImGui::Text("MISSING TEXTURE!"); return; }
+		if (sprite.TextureName == "\0") { ImGui::Text("MISSING TEXTURE!"); return; }
 
 		// TODO: Pass in an EditorEntity, which manages either a component slice or an actual corresponding entity so that IsEnabled checks can be done.
 		// This may as well be set for all calls. TODO: This may run into problems with the clamping if two different editors are opened with different tile sizes.
@@ -46,7 +47,8 @@ namespace Engine
 		// TODO: Multiple unconnected line segment, currently the assumption is they'll all want to be connected to one another.
 		const Vector2<float> tileSize = (Vector2<float>)sprite.SourceRectangle.Size;
 
-		std::vector<Vector2<float>>& collisionPoints = std::get<Collider&>(components).Points;
+		Collider& collider = std::get<Collider&>(components);
+		std::vector<Vector2<float>> collisionPoints(collider.Points.begin(), collider.Points.begin() + collider.NumberOfPoints); // Sequence of nodes to form edge of collider.
 
 		/* INPUT */
 		// Snapping choice
@@ -54,10 +56,11 @@ namespace Engine
 		Snapping = Vector2<int>::Clamp(Snapping, { 1, 1 }, sprite.SourceRectangle.Size / 4); // TODO: Lock values to each other with optional button to disable.
 
 		// Collision Input.
-		const Vector2<float> atlasSize = (Vector2<float>)sprite.SourceTexture->GetSize();
+		Texture& sourceTexture = Renderer::Instance().GetTexture(sprite.TextureName);
+		const Vector2<float> atlasSize = (Vector2<float>)sourceTexture.GetSize();
 		const Vector2<float> uvTopLeft = { (float)sprite.SourceRectangle.Position.X / atlasSize.X, (float)sprite.SourceRectangle.Position.Y / atlasSize.Y };
 		const Vector2<float> uvBottomRight = { ((float)sprite.SourceRectangle.Position.X + tileSize.X) / atlasSize.X, ((float)sprite.SourceRectangle.Position.Y + tileSize.Y) / atlasSize.Y };
-		ImGui::Image(*sprite.SourceTexture, atlasSize, uvTopLeft, uvBottomRight);
+		ImGui::Image(*&sourceTexture, atlasSize, uvTopLeft, uvBottomRight);
 
 		const Vector2<float> imagePosition = (Vector2<float>)ImGui::GetItemRectMin();
 		if (ImGui::IsItemHovered()) // https://github.com/ocornut/imgui/issues/5492
@@ -86,15 +89,17 @@ namespace Engine
 					)
 				{
 					collisionPoints.push_back(snappedPixel);
+					collider.NumberOfPoints += 1;
 				}
 			}
 
 			// Erase.
-			if (ImGui::IsMouseDown(ImGuiMouseButton_Right))
+			if (ImGui::IsMouseClicked(ImGuiMouseButton_Right))
 			{
 				// std::erase will reshuffle the vector to handle gaps,
 				// which is more difficult to handle with an std::pair to represent edges.
 				std::erase(collisionPoints, snappedPixel);
+				collider.NumberOfPoints -= 1;
 			}
 		}
 
@@ -106,6 +111,12 @@ namespace Engine
 			ImGui::InputFloat2("", &point.X);
 			point = Vector2<float>::Clamp(point, Vector2<float>::Zero(), tileSize);
 			ImGui::PopID();
+		}
+
+		// Update original.
+		for (int i = 0; i < collisionPoints.size(); ++i)
+		{
+			collider.Points[i] = collisionPoints[i];
 		}
 
 		/* DISPLAY */

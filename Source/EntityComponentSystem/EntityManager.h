@@ -3,9 +3,18 @@
 #include "EntityMemoryPool.h"
 #include <vector>
 #include <map>
+#include <fstream>
+#include <sstream>
 
 namespace Engine
 {
+	struct SerialisedData
+	{
+		std::bitset<MAX_COMPONENTS> EnabledComponents;
+		char Tag[64];
+		ComponentSlice Slice;
+	};
+
 	class EntityManager
 	{
 		std::vector<Entity> Entities;
@@ -22,6 +31,53 @@ namespace Engine
 			{
 				EntityMemoryPool::Instance().Destroy(entity.ID);
 			}
+		}
+
+		void Save(const std::string& path)
+		{
+			auto saveEntity = [](Entity entity, std::ofstream& out, EntityManager& manager)
+			{
+				size_t id = entity.GetID();
+
+				SerialisedData data
+				{
+					manager.GetEnabledComponents(id),
+					"\0",
+					manager.GetPoolSlice(id)
+				};
+				strcpy(data.Tag, entity.GetTag().c_str());
+
+				out.write(reinterpret_cast<char*>(&data), sizeof(data));
+			};
+
+			// Each line is an entity.
+			std::ofstream out{ path };
+
+			// Want to avoid new line at the end file so that loading is simpler.
+			saveEntity(Entities[0], out, *this);
+			for (int i = 1; i < Entities.size(); ++i)
+			{
+				out << "\n";
+				saveEntity(Entities[i], out, *this);
+			}
+		}
+
+		void Load(const std::string& path)
+		{
+			std::ifstream in{ path };
+
+			std::string line;
+			while (std::getline(in, line))
+			{
+				SerialisedData data;
+				std::istringstream string(line);
+				string.read(reinterpret_cast<char*>(&data), sizeof(data));
+
+				Entity entity = AddEntity(data.Tag);
+				SetEnabledComponents(entity.GetID(), data.EnabledComponents);
+				SetPoolSlice(entity.GetID(), data.Slice);
+			}
+
 		}
 
 		void Update()

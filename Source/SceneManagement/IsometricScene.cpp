@@ -42,7 +42,7 @@ namespace Engine
 		player.AddComponent<Sprite>();
 
 		Sprite& sprite = player.GetComponent<Sprite>();
-		sprite.SourceTexture = &Renderer::Instance().GetTexture("AnimationSheet.png");
+		strcpy(sprite.TextureName, "AnimationSheet.png");
 		sprite.SourceRectangle = { {}, TileSize};
 		sprite.PivotOffset = { static_cast<float>(TileSize.X) / 2.f, static_cast<float>(TileSize.Y) / 1.5f };
 
@@ -85,6 +85,18 @@ namespace Engine
 		std::function editorBehaviour = [this]()
 		{
 			Editor->IsEnabled = !Editor->IsEnabled;
+		};
+
+		std::function saveBehaviour = [this]()
+		{
+			GetEntityManager().Save("Test");
+		};
+
+		std::function loadBehaviour = [this]()
+		{
+			ManagedEntityManager = EntityManager();
+			ManagedEntityManager.Load("Test");
+			MainCamera = ManagedEntityManager.GetEntitiesByTag("Camera")[0];
 		};
 
 		// Input Binding
@@ -131,6 +143,13 @@ namespace Engine
 		Action<>& editorAction = InputManager.AddAction(editorBehaviour);
 		editorAction.BindInput(SDL_GetScancodeName(SDL_SCANCODE_GRAVE));
 		editorAction.GetInput(SDL_GetScancodeName(SDL_SCANCODE_GRAVE)).AddCondition<PressedCondition>();
+
+		// Save/Load test
+		Action<>& saveAction = InputManager.AddAction(saveBehaviour);
+		saveAction.BindInput(SDL_GetScancodeName(SDL_SCANCODE_0));
+
+		Action<>& loadAction = InputManager.AddAction(loadBehaviour);
+		loadAction.BindInput(SDL_GetScancodeName(SDL_SCANCODE_9));
 	}
 
 	IsometricScene::~IsometricScene()
@@ -146,19 +165,6 @@ namespace Engine
 
 	void IsometricScene::Render(Renderer& renderer)
 	{
-		const float zoom = MainCamera.GetComponent<Zoom>().Value;
-
-		Texture& texture = renderer.GetTexture("DebugMap.jpg");
-		Vector2<float> renderPosition = WorldSpaceToRenderSpace({ 0 - (512 / 2), 0 });
-		Vector2<float> renderSize = { 512 * zoom, 256 * zoom };
-		Vector2<int> sourcePosition = { 0,0 };
-		Vector2<int> sourceSize = texture.GetSize();
-
-		Rectangle<float> renderRectangle = { {renderPosition.X, renderPosition.Y}, {renderSize.X, renderSize.Y} };
-		Rectangle<int> sourceRectangle = { {sourcePosition.X, sourcePosition.Y}, {sourceSize.X, sourceSize.Y} };
-
-		renderer.RenderSprite(texture, sourceRectangle, renderRectangle);
-		
 		RenderGrid(renderer);
 		RenderScene(renderer);
 	}
@@ -170,7 +176,7 @@ namespace Engine
 		{
 			Position& position = entity.GetComponent<Position>();
 			Sprite& sprite = entity.GetComponent<Sprite>();
-			if (sprite.SourceTexture == nullptr)
+			if (sprite.TextureName == "\0")
 			{
 				// This shouldn't happen unless the sprite component is incorrectly initialised/altered.
 				// It needs the texture to be a pointer so that there's a default value for when the components 
@@ -179,7 +185,7 @@ namespace Engine
 				continue;
 			}
 
-			Texture& texture = *sprite.SourceTexture;
+			Texture& texture = Renderer::Instance().GetTexture(sprite.TextureName);
 			Vector2<float> renderPosition = WorldSpaceToRenderSpace(position - sprite.PivotOffset);
 			Vector2<float> renderSize = (Vector2<float>)sprite.SourceRectangle.Size * zoom;
 

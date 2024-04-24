@@ -14,7 +14,7 @@ namespace Engine
 		Vector2<int> size = atlas.GetTileSize();
 
 		Sprite& sprite = std::get<Sprite>(ComponentSliceData);
-		sprite.SourceTexture = atlas.GetTexture();
+		strcpy(sprite.TextureName, atlas.GetName().c_str());
 		sprite.SourceRectangle = { {index.X * size.X, index.Y * size.Y}, size };
 		sprite.PivotOffset = (Vector2<float>)size / 2.f;
 	}

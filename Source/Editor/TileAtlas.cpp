@@ -30,6 +30,11 @@ namespace Engine
 		return CorrespondingTexture;
 	}
 
+	std::string TileAtlas::GetName()
+	{
+		return Name;
+	}
+
 	Vector2<int> TileAtlas::GetSize()
 	{
 		return Size;

@@ -16,7 +16,7 @@ namespace Engine
 	std::vector<Vector2<int>> NavigationGraph::GetNeighbours(Vector2<int> centralNode) const // TODO: Make lambda and pass in via constructor? That way individual scenes could handle this function and it would avoid inheritence.
 	{
 		// Early exit to prevent never ending search. TODO: Probably better way to handle this.
-		//if (centralNode.Length() > 1000) { return {}; }
+		if (centralNode.Length() > 1000) { return {}; }
 
 		// Start by getting the adjacent nodes to the passed node.
 		std::vector adjacentNodes = Directions;
@@ -33,13 +33,14 @@ namespace Engine
 		{
 			if (!entity.HasComponents<Position, Collider, Sprite>()) { continue; } // Entities with a collider should have a position, but best check anyway.
 			const Position& position = entity.GetComponent<Position>();
+			const Collider& collider = entity.GetComponent<Collider>();
 
 			// If not an adjacent node skip.
 			const int distanceFromCentralNode = (centralNode - static_cast<Vector2<int>>(Vector2{ position.X, position.Y })).LengthSquared();
 			if (distanceFromCentralNode > maxNodeDistanceSquared) { continue; }
 
 			// Create a copy of the collision points to account for position and offset of sprite.
-			std::vector<Vector2<float>> collisionNodes = entity.GetComponent<Collider>().Points; // Sequence of nodes to form edge of collider.
+			std::vector<Vector2<float>> collisionNodes(collider.Points.begin(), collider.Points.begin() + collider.NumberOfPoints); // Sequence of nodes to form edge of collider.
 			for (auto& edge : collisionNodes)
 			{
 				edge += position;

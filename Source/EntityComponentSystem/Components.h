@@ -3,7 +3,7 @@
 #include "../Maths/Vector2.h"
 #include "../Maths/Rectangle.h"
 #include <optional>
-#include <vector>
+#include <array>
 
 // TODO: Constructors that are forwarded to AddComponent() in the EntityMemoryPool so that I don't need to manually do
 // setup.
@@ -37,13 +37,7 @@ namespace Engine
 	/// </summary>
 	struct Sprite
 	{
-		/// <summary>
-		/// Pointer to texture rather than a reference so that default entities can be list initialised in the same vein as other components.
-		/// Should never be a nullptr provided objects are constructed properly.
-		///	TODO: It would be safer to just store the path to the texture/name in the map rather than the pointer and access it through the map.
-		///	Though that would mean no access to helper functions which is a bit of a loss. Perhaps std::optional instead?
-		/// </summary>
-		Texture* SourceTexture = nullptr;
+		char TextureName[64] = "\0";
 
 		/// <summary>
 		/// Sub-rectangle of texture to render.
@@ -68,8 +62,8 @@ namespace Engine
 
 	struct Collider
 	{
-		std::vector<Vector2<float>> Points; // An array might be better here for maximising cache hits, but it would mean setting a maximum size.
-		// TODO: Bitmask for affecting things like path finding, lighting, sound, etc.
+		int NumberOfPoints = 0;
+		std::array<Vector2<float>, 32> Points;
 	};
 
 	struct Pathfinding

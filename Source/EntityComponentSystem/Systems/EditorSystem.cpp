@@ -205,12 +205,13 @@ namespace Engine
 			if (!entity.HasComponents<Collider, Position, Sprite>()) { continue; }
 
 			Collider& collider = entity.GetComponent<Collider>();
+			std::vector<Vector2<float>> collisionPoints(collider.Points.begin(), collider.Points.begin() + collider.NumberOfPoints); // Sequence of nodes to form edge of collider.
 
-			if (collider.Points.empty()) { continue; }
+			if (collisionPoints.empty()) { continue; }
 
 			Position& position = entity.GetComponent<Position>();
 			Sprite& sprite = entity.GetComponent<Sprite>();
-			for (auto it = collider.Points.cbegin(); it != collider.Points.cend() - 1; ++it)
+			for (auto it = collisionPoints.cbegin(); it != collisionPoints.cend() - 1; ++it)
 			{
 				Vector2<float> point0 = OwningScene.WorldSpaceToRenderSpace(*it + position - sprite.PivotOffset);
 				Vector2<float> point1 = OwningScene.WorldSpaceToRenderSpace(*(it + 1) + position - sprite.PivotOffset);
@@ -303,7 +304,7 @@ namespace Engine
 			velocity.Direction.Y = std::sin(angleIncrements * (i % segments));
 
 			Sprite& sprite = entity.GetComponent<Sprite>();
-			sprite.SourceTexture = &Renderer::Instance().GetTexture("AnimationSheet.png");
+			strcpy(sprite.TextureName, "AnimationSheet.png");
 			sprite.SourceRectangle = { {}, OwningScene.TileSize };
 			sprite.PivotOffset = { static_cast<float>(OwningScene.TileSize.X) / 2.f, static_cast<float>(OwningScene.TileSize.Y) / 1.5f };
 		}

@@ -16,6 +16,7 @@ namespace Engine
 		TileAtlas(std::string name, Vector2<int> tileSize);
 
 		Texture* GetTexture();
+		std::string GetName();
 		Vector2<int> GetSize();
 		Vector2<int> GetTileSize();
 		int GetTileCountX();
