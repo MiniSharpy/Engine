@@ -5,6 +5,7 @@
 #include <map>
 #include <fstream>
 #include <sstream>
+#include <cstring>
 
 namespace Engine
 {

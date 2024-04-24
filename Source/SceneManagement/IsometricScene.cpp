@@ -176,7 +176,7 @@ namespace Engine
 		{
 			Position& position = entity.GetComponent<Position>();
 			Sprite& sprite = entity.GetComponent<Sprite>();
-			if (sprite.TextureName == "\0")
+			if (sprite.TextureName[0] == '\0')
 			{
 				// This shouldn't happen unless the sprite component is incorrectly initialised/altered.
 				// It needs the texture to be a pointer so that there's a default value for when the components 

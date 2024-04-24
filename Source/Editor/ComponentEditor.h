@@ -37,7 +37,7 @@ namespace Engine
 		if (isMissingDependencies) { ImGui::Text("COLLIDER COMPONENT REQUIRES SPRITE COMPONENT!"); return; } // TODO: Report missing sprite component in whatever system deals with colliders?
 
 		const Sprite& sprite = std::get<Sprite&>(components);
-		if (sprite.TextureName == "\0") { ImGui::Text("MISSING TEXTURE!"); return; }
+		if (sprite.TextureName[0] == '\0') { ImGui::Text("MISSING TEXTURE!"); return; }
 
 		// TODO: Pass in an EditorEntity, which manages either a component slice or an actual corresponding entity so that IsEnabled checks can be done.
 		// This may as well be set for all calls. TODO: This may run into problems with the clamping if two different editors are opened with different tile sizes.
