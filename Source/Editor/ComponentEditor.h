@@ -89,17 +89,15 @@ namespace Engine
 					)
 				{
 					collisionPoints.push_back(snappedPixel);
-					collider.NumberOfPoints += 1;
 				}
 			}
 
 			// Erase.
-			if (ImGui::IsMouseClicked(ImGuiMouseButton_Right))
+			if (ImGui::IsMouseDown(ImGuiMouseButton_Right))
 			{
 				// std::erase will reshuffle the vector to handle gaps,
 				// which is more difficult to handle with an std::pair to represent edges.
 				std::erase(collisionPoints, snappedPixel);
-				collider.NumberOfPoints -= 1;
 			}
 		}
 
@@ -118,6 +116,7 @@ namespace Engine
 		{
 			collider.Points[i] = collisionPoints[i];
 		}
+		collider.NumberOfPoints = collisionPoints.size();
 
 		/* DISPLAY */
 		const Vector2<float> imageScale = { atlasSize.X / tileSize.X, atlasSize.Y / tileSize.Y };
